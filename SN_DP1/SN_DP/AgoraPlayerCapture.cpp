@@ -120,7 +120,7 @@ BOOL AgoraPlayerManager::startHook(BOOL bstart, TCHAR* pPlayerPath)
 	if (this->bHook)
 	{
 		mpPlayerHooker->stopAudioCapture();
-		mpPlayerHooker->stopHook();
+		//mpPlayerHooker->stopHook();
 	}
 	else
 	{

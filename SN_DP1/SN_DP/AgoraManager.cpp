@@ -341,7 +341,7 @@ BOOL AgoraManager::initParam()
 	this->ChatRoomInfo.nWidth = 320;
 	this->ChatRoomInfo.sCamerName = "Integrated Webcam";
 	this->ChatRoomInfo.sChannelKey = "";
-	this->ChatRoomInfo.sChannelName = "123test";
+	this->ChatRoomInfo.sChannelName = "123test1";
 	this->ChatRoomInfo.sMicName = "";
 	this->ChatRoomInfo.sPlayerPath = "";
 	this->ChatRoomInfo.sPublishUrl = "";

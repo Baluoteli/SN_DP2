@@ -38,7 +38,7 @@ int CPlayerHookerV6::startHook(TCHAR* playerPath)
 
 void CPlayerHookerV6::stopHook()
 {
-	KillProcess(hookexepath);
+	//KillProcess(hookexepath);
 	RemoveHookAudio();
 }
 
