@@ -59,7 +59,7 @@ BOOL AgoraManager::setLocalCanvas(uid_t uid, HWND hwnd)
 {
 	VideoCanvas vc;
 	vc.uid = uid;
-	vc.renderMode = RENDER_MODE_TYPE::RENDER_MODE_FIT;
+	vc.renderMode = RENDER_MODE_TYPE::RENDER_MODE_HIDDEN;
 	vc.view = hwnd;
 	int ret = pRTCEngine->setupLocalVideo(vc);
 	if (ret == 0)
@@ -309,6 +309,31 @@ BOOL AgoraManager::setChannelAndRole(CHANNEL_PROFILE_TYPE ch_type, CLIENT_ROLE_T
 	return TRUE;
 }
 
+BOOL AgoraManager::SetVideoRenderType(int nType)
+{
+	int	nRet = 0;
+
+	AParameter apm(*pRTCEngine);
+	switch (nType)
+	{
+	case 0:
+		nRet = apm->setInt("che.video.renderer.type", VideoRenderType::kRenderWindowsD3D);
+		break;
+	case 1:
+		nRet = apm->setInt("che.video.renderer.type", VideoRenderType::kRenderWindowsD2D);
+		break;
+	case 2:
+		nRet = apm->setInt("che.video.renderer.type", VideoRenderType::kRenderWindowsGDI);
+		break;
+	default:
+		nRet = apm->setInt("che.video.renderer.type", VideoRenderType::kRenderWindowsD3D);
+		break;
+	}
+
+	return nRet == 0 ? TRUE : FALSE;
+}
+
+
 BOOL AgoraManager::EnableLocalMirrorImage(BOOL bMirrorLocal)
 {
 	int nRet = 0;
@@ -371,6 +396,8 @@ BOOL AgoraManager::start()
 // 	this->initEngine(APP_ID);
 // 	//set hwnd for message post by event_handler
 // 	this->setEventHandler(m_RenderWnd);
+
+	SetVideoRenderType(2);
 
 	//open log
 	RtcEngineParameters rep(pRTCEngine);

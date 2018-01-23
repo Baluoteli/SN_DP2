@@ -54,6 +54,12 @@ typedef struct ChatInfo
 	std::string sChannelKey;
 }CHATINFO;
 
+enum VideoRenderType {
+	kRenderWindowsD3D = 7, // only for windows
+	kRenderWindowsD2D = 8, // only for windows
+	kRenderWindowsGDI = 9, // only for windows
+};
+
 typedef struct RTMPInfo
 {
 	std::string ip;
@@ -136,6 +142,8 @@ public:
 	BOOL disableVideo();
 	BOOL JoinChannel(char* lpChannelName, UINT nUID, char* lpDynamicKey);
 	BOOL LeaveChannel();
+	BOOL SetVideoRenderType(int nType);
+
 private:
 
 	BOOL bVideoEnable;
