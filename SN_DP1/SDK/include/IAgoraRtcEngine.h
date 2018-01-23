@@ -226,7 +226,7 @@ enum LOG_FILTER_TYPE
 
 enum MAX_DEVICE_ID_LENGTH_TYPE
 {
-    MAX_DEVICE_ID_LENGTH = 1024
+    MAX_DEVICE_ID_LENGTH = 512
 };
 
 enum QUALITY_REPORT_FORMAT_TYPE
@@ -1529,8 +1529,6 @@ public:
 #if defined(_WIN32)
 	virtual int configPublisher(const PublisherConfiguration& config) = 0;
 #endif
-
-    virtual void onFatalError(void *pExp) = 0;
 };
 
 
