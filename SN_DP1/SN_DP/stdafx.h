@@ -25,7 +25,12 @@
 #pragma comment(lib, "agora_rtc_sdk.lib")
 using namespace agora::util;
 using namespace agora::media;
+
+#ifdef _DEBUG
 #pragma comment(lib,"../debug/PlayerHookerV6.lib");
+#else
+#pragma comment(lib,"../Release/PlayerHookerV6.lib");
+#endif
 
 // TODO:  在此处引用程序需要的其他头文件
 // #include "IAgoraMediaEngine.h"

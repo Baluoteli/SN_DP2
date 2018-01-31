@@ -4,7 +4,7 @@
 #include <mmreg.h>
 #include "detours.h"
 
-CAPIHookLog CAudioDataHooker::ms_log(_T("C:\\PlayerHookerV6.txt"));
+CAPIHookLog CAudioDataHooker::ms_log(_T("D:\\V6room\\PlayerHookerV6.txt"));
 CHookDataPoolVector CAudioDataHooker::ms_hookDataPools;
 CLock CAudioDataHooker::ms_lockHookDataPools;
 CHookWaveOutMap CAudioDataHooker::ms_hookWaveOuts;
@@ -31,7 +31,7 @@ static void* GetComInterfaceAddr(void* pClass, int funcIdx)
 }
 
 // CAudioDataHooker
-						   
+
 CAudioDataHooker::CAudioDataHooker(): m_hook(false), m_sharedMem(pszSHARE_MAP_FILE_NAME, dwSHARE_MEM_SIZE), 
 	m_pIntervalThread(NULL), m_srcSampleRate(0), m_pNotifyBuffer(NULL), m_hookDll(NULL), m_dsoundDll(NULL),
 	m_winmmDll(NULL), m_origWaveOutClose(NULL), m_origWaveOutOpen(NULL), m_origWaveOutPause(NULL), m_origWaveOutReset(NULL)

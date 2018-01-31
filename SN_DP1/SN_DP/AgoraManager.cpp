@@ -1,6 +1,58 @@
 #include "stdafx.h"
 #include "AgoraManager.h"
 
+bool findPlayerPath(char* exename, int namelen, TCHAR* playerPath)
+{
+#define MY_BUFSIZE 256
+	HKEY hKey;
+	TCHAR szFindPath[MY_BUFSIZE] = { 0 };
+	char szPlayer[MY_BUFSIZE] = { 0 };
+
+	int i = 0;
+	for (; i < namelen; i++)
+	{
+		if (exename[i] == '.')
+			break;
+		szPlayer[i] = exename[i];
+	}
+	if (i == namelen)
+		return FALSE;
+
+	TCHAR path_temp[MY_BUFSIZE] = { 0 };
+	MultiByteToWideChar(CP_UTF8, 0, szPlayer, -1, path_temp, i);
+
+	wsprintf(szFindPath, L"software\\%s", path_temp);
+	TCHAR szProductType[MY_BUFSIZE];
+	memset(szProductType, 0, sizeof(szProductType));
+	DWORD dwBufLen = MY_BUFSIZE;
+	LONG lRet;
+
+	// 下面是打开注册表, 只有打开后才能做其他操作
+	lRet = RegOpenKeyEx(HKEY_CURRENT_USER,  // 要打开的根键 
+		szFindPath, // 要打开的子子键 
+		0,        // 这个一定要为0 
+		KEY_QUERY_VALUE,  //  指定打开方式,此为读 
+		&hKey);    // 用来返回句柄 
+
+	if (lRet != ERROR_SUCCESS)   // 判断是否打开成功 
+		return FALSE;
+	//下面开始查询 
+	lRet = RegQueryValueEx(hKey,  // 打开注册表时返回的句柄 
+		TEXT("AppPath"),  //要查询的名称,qq安装目录记录在这个保存 
+		NULL,   // 一定为NULL或者0 
+		NULL,
+		(LPBYTE)szProductType, // 我们要的东西放在这里 
+		&dwBufLen);
+	if (lRet != ERROR_SUCCESS)  // 判断是否查询成功 
+		return FALSE;
+	RegCloseKey(hKey);
+
+	//memcpy(exePath, szProductType, dwBufLen);
+	wsprintf(playerPath, L"%s\\%s", szProductType, L"KuGou.exe");
+
+	return TRUE;
+}
+
 AgoraManager::AgoraManager()
 {
 }
@@ -362,7 +414,7 @@ BOOL AgoraManager::initParam()
 	this->ChatRoomInfo.nMicChannel = 2;
 	this->ChatRoomInfo.nRID = 1111;
 	this->ChatRoomInfo.nSampleRate = 44100;
-	this->ChatRoomInfo.nUID = 1111;
+	this->ChatRoomInfo.nUID = 1112;
 	this->ChatRoomInfo.nWidth = 320;
 	this->ChatRoomInfo.sCamerName = "Integrated Webcam";
 	this->ChatRoomInfo.sChannelKey = "";
@@ -403,29 +455,34 @@ BOOL AgoraManager::start()
 	RtcEngineParameters rep(pRTCEngine);
 	res = rep.setLogFile("D:\\V6room\\v6room.log");
 
-	this->pPlayerCaptureManager->startHook(TRUE, L"D:\\programe file\\KGMusic\\KuGou.exe");
+	TCHAR exePath[256] = { '\0' };
+	findPlayerPath("KuGou.exe", 256, exePath);
+	//this->pPlayerCaptureManager->startHook(TRUE, L"D:\\programe file\\KGMusic\\KuGou.exe");
+	pPlayerCaptureManager->startHook(TRUE, exePath);
+
 	//this->pPlayerCaptureManager->startHook(TRUE, L"D:\\Program Files\\KuGou\\KGMusic\\KuGou.exe");
 
  	this->pVideoCaptureManager->initCapture(this->ChatRoomInfo.nWidth, this->ChatRoomInfo.nHeight, this->ChatRoomInfo.nFps);
- 	//this->pVideoCaptureManager->startCapture();
+ 	this->pVideoCaptureManager->startCapture();
  	 //	this->pVideoPlayManager->initPlayInfo(320, 240, 15);
  	// 	this->pVideoPlayManager->startVideoPlay();
 	
 	setRtcEngineAudioProfileEx(44100, 2, 44100 * 2 / 100);
-	this->enableOBServer(TRUE, FALSE);
-// set upload stream info
-// 	struct  PublisherConfiguration config;
-// 	config.bitrate = 800;
-// 	config.width = 320;
-// 	config.height = 240;
-// 	config.framerate = 15;
-// 	config.publishUrl = "rtmp://aliliveup.6rooms.com/liverecord/v587";
-// 	config.injectStreamWidth = 0;
-// 	config.injectStreamHeight = 0;
-// 	config.defaultLayout = 0;
-// 	config.owner = true;
-// 	config.lifecycle = 2;
-//	this->pRTCEngine->configPublisher(config);
+	this->enableOBServer(TRUE, TRUE);
+
+//set upload stream info
+	struct  PublisherConfiguration config;
+	config.bitrate = 800;
+	config.width = 320;
+	config.height = 240;
+	config.framerate = 15;
+	config.publishUrl = "rtmp://vid-218.push.fastweb.broadcastapp.agora.io/live/wawajimp_3";
+	config.injectStreamWidth = 0;
+	config.injectStreamHeight = 0;
+	config.defaultLayout = 0;
+	config.owner = true;
+	config.lifecycle = 2;
+	this->pRTCEngine->configPublisher(config);
 
 	char* permissionkey = NULL;
 	this->setChannelAndRole(CHANNEL_PROFILE_LIVE_BROADCASTING, CLIENT_ROLE_BROADCASTER, permissionkey);

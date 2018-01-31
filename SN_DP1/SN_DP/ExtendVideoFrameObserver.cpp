@@ -103,10 +103,10 @@ bool CExtendVideoFrameObserver::onCaptureVideoFrame(VideoFrame& videoFrame)
 //  	FILE* outfile = fopen("D:\\wechat file\\WeChat Files\\baluoteliz\\Files\\SN_DP1\\Debugou.yuv", "wb");
 //  	fwrite(m_lpImageBuffer, 1, 320*240 * 3 / 4, outfile);
 //  	fclose(outfile);
-	CFileIO fileYuv;
-	fileYuv.openMedia("D:\\V6room\\src.yuv");
-	fileYuv.write((char*)m_lpImageBuffer, 320 * 240 * 3 / 2);
-	fileYuv.close();
+// 	CFileIO fileYuv;
+// 	fileYuv.openMedia("D:\\V6room\\src.yuv");
+// 	fileYuv.write((char*)m_lpImageBuffer, 320 * 240 * 3 / 2);
+// 	fileYuv.close();
 
 	memcpy_s(videoFrame.yBuffer, nYLen, m_lpY, nYLen);
 	videoFrame.yStride = videoFrame.width;
