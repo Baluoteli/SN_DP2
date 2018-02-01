@@ -418,7 +418,7 @@ BOOL AgoraManager::initParam()
 	this->ChatRoomInfo.nWidth = 480;
 	this->ChatRoomInfo.sCamerName = "Integrated Webcam";
 	this->ChatRoomInfo.sChannelKey = "";
-	this->ChatRoomInfo.sChannelName = "123test";
+	this->ChatRoomInfo.sChannelName = "123test133";
 	this->ChatRoomInfo.sMicName = "";
 	this->ChatRoomInfo.sPlayerPath = "";
 	this->ChatRoomInfo.sPublishUrl = "";
@@ -454,8 +454,6 @@ BOOL AgoraManager::start()
 	//open log
 	RtcEngineParameters rep(pRTCEngine);
 	res = rep.setLogFile("D:\\V6room\\v6room.log");
-
-	pRTCEngine->enableVideo();
 
 	//pRTCEngine->enableVideo();
 	TCHAR exePath[256] = { '\0' };
@@ -499,13 +497,13 @@ BOOL AgoraManager::start()
 	else
 		this->setLocalCanvas(this->ChatRoomInfo.nUID, m_RenderR);
 	this->setDevicesParam();
-	//this->setDevices(this->ChatRoomInfo.sMicName, this->ChatRoomInfo.sCamerName);
+	this->setDevices(this->ChatRoomInfo.sMicName, this->ChatRoomInfo.sCamerName);
 
 // 	char cRID[64] = { 0 };
 // 	snprintf(cRID, 64, "test%d", this->ChatRoomInfo.nRID);
 	res = pRTCEngine->startPreview();
 	char* lpDynamicKey = NULL;
-	//this->JoinChannel((char*)this->ChatRoomInfo.sChannelName.c_str(), this->ChatRoomInfo.nUID, lpDynamicKey);
+	this->JoinChannel((char*)this->ChatRoomInfo.sChannelName.c_str(), this->ChatRoomInfo.nUID, lpDynamicKey);
 	
 	return TRUE;
 }

@@ -87,6 +87,7 @@ BOOL KillProcess(LPTSTR pProcessName);
 
 CString s2cs(const std::string &str);
 std::string cs2s(const CString &str);
+bool findPlayerPath(char* exename, int namelen, TCHAR* playerPath);
 
 extern CFileIO gFileLog;
 #endif

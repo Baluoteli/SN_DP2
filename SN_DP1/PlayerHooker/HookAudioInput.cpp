@@ -10,7 +10,9 @@ const DWORD dwGET_DATA_WAIT_TIME = 200;
 bool HaveHookAudioRunning()
 {
 	CSharedMem sharedMem(pszSHARE_MAP_FILE_NAME, dwSHARE_MEM_SIZE);
-	return sharedMem.GetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, 0) % 2 == 1;
+	int hookCount = sharedMem.GetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, 0);
+	CAudioDataHooker::ms_log.Trace(_T("HaveHookAudioRunning: START_SECTION_NAME %d\n"),hookCount);
+	return hookCount% 2 == 1;
 }
 
 // CHookAudioInput

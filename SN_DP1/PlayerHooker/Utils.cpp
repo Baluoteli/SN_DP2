@@ -133,3 +133,55 @@ std::string cs2s(const CString &str)
 	CString sTemp(str);
 	return CStringA(sTemp.GetBuffer()).GetBuffer();
 }
+
+bool findPlayerPath(char* exename, int namelen, TCHAR* playerPath)
+{
+#define MY_BUFSIZE 256
+	HKEY hKey;
+	TCHAR szFindPath[MY_BUFSIZE] = { 0 };
+	char szPlayer[MY_BUFSIZE] = { 0 };
+
+	int i = 0;
+	for (; i < namelen; i++)
+	{
+		if (exename[i] == '.')
+			break;
+		szPlayer[i] = exename[i];
+	}
+	if (i == namelen)
+		return FALSE;
+
+	TCHAR path_temp[MY_BUFSIZE] = { 0 };
+	MultiByteToWideChar(CP_UTF8, 0, szPlayer, -1, path_temp, i);
+
+	wsprintf(szFindPath, L"software\\%s", path_temp);
+	TCHAR szProductType[MY_BUFSIZE];
+	memset(szProductType, 0, sizeof(szProductType));
+	DWORD dwBufLen = MY_BUFSIZE;
+	LONG lRet;
+
+	// 下面是打开注册表, 只有打开后才能做其他操作
+	lRet = RegOpenKeyEx(HKEY_CURRENT_USER,  // 要打开的根键 
+		szFindPath, // 要打开的子子键 
+		0,        // 这个一定要为0 
+		KEY_QUERY_VALUE,  //  指定打开方式,此为读 
+		&hKey);    // 用来返回句柄 
+
+	if (lRet != ERROR_SUCCESS)   // 判断是否打开成功 
+		return FALSE;
+	//下面开始查询 
+	lRet = RegQueryValueEx(hKey,  // 打开注册表时返回的句柄 
+		TEXT("AppPath"),  //要查询的名称,qq安装目录记录在这个保存 
+		NULL,   // 一定为NULL或者0 
+		NULL,
+		(LPBYTE)szProductType, // 我们要的东西放在这里 
+		&dwBufLen);
+	if (lRet != ERROR_SUCCESS)  // 判断是否查询成功 
+		return FALSE;
+	RegCloseKey(hKey);
+
+	//memcpy(exePath, szProductType, dwBufLen);
+	wsprintf(playerPath, L"%s\\%s", szProductType, L"KuGou.exe");
+
+	return TRUE;
+}

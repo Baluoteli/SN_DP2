@@ -32,16 +32,16 @@ static void* GetComInterfaceAddr(void* pClass, int funcIdx)
 
 // CAudioDataHooker
 
-CAudioDataHooker::CAudioDataHooker(): m_hook(false), m_sharedMem(pszSHARE_MAP_FILE_NAME, dwSHARE_MEM_SIZE), 
+CAudioDataHooker::CAudioDataHooker(TCHAR *pTStr) : m_hook(false), m_sharedMem(pszSHARE_MAP_FILE_NAME, dwSHARE_MEM_SIZE),
 	m_pIntervalThread(NULL), m_srcSampleRate(0), m_pNotifyBuffer(NULL), m_hookDll(NULL), m_dsoundDll(NULL),
 	m_winmmDll(NULL), m_origWaveOutClose(NULL), m_origWaveOutOpen(NULL), m_origWaveOutPause(NULL), m_origWaveOutReset(NULL)
 	, m_origWaveOutWrite(NULL), m_origWaveOutSetVolume(NULL), m_origWaveOutRestart(NULL)
 	, m_origDsoundBufferPlay(NULL), m_origDsoundBufferRelease(NULL), m_origDsoundBufferSetCurrentPosition(NULL)
 	, m_origDsoundBufferSetVolume(NULL), m_origDsoundBufferStop(NULL), m_origDsoundBufferLock(NULL)
 	, m_origDirectSoundCreate(NULL), m_origDirectSoundCreate8(NULL), m_origDsound8CreateBuffer(NULL)
-	, m_origDsoundCreateBuffer(NULL), m_ncount(0)
+	, m_origDsoundCreateBuffer(NULL), m_ncount(0), m_strApp(pTStr)
 {
-	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::CAudioDataHooker()\n"));
+	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::CAudioDataHooker() %s\n"),m_strApp);
 	if (m_sharedMem.IsCreated()) 
 	{
 		if (!m_sharedMem.ExistValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME))
@@ -205,8 +205,15 @@ void CAudioDataHooker::OnIntervalExecute()
 			{
 				if (audioChunk.GetDataSize() <= dwNOTIFY_SIZE * 2)
 				{
+					FILE* outfile = fopen("D:\V6room\\HookSrc.pcm", "ab+");
+					if (outfile)
+					{
+						fwrite(audioChunk.GetData(), 1, audioChunk.GetDataSize(), outfile);
+						fclose(outfile);
+						outfile = NULL;
+					}
 					m_sharedMem.SetValue(pszHOOK_PROCESS_AUDIO_DATA_SECTION_NAME, audioChunk.GetData(), audioChunk.GetDataSize());
-					//CAudioDataHooker::ms_log.Trace(_T("pAudioDataPool Share Data: %d\n"), audioChunk.GetDataSize());
+					CAudioDataHooker::ms_log.Trace(_T("pAudioDataPool Share Data: %d\n"), audioChunk.GetDataSize());
 				}
 				else
 				{
@@ -286,14 +293,21 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 	TCHAR buf[255];
 	DWORD valueSize = 255;
 	memset(buf, 0, sizeof(buf));
+
+	//SetTargetAppPath force
+	TCHAR exePath[256] = { '\0' };
+	findPlayerPath("KuGou.exe", 256, exePath);
+	m_sharedMem.SetValue(pszHOOK_PROCESS_PATH_SECTION_NAME, (void*)exePath,
+		(DWORD)_tcsclen(exePath) * sizeof(TCHAR));
+	m_strApp = exePath;
+
 	if (!m_sharedMem.GetValue(pszHOOK_PROCESS_PATH_SECTION_NAME, buf, &valueSize))
 	{
 		return FALSE;
 	}
-	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::StartWork: [%s, %s]\n"), pHookProcessPath, buf);
 	if (_tcsicmp(buf, pHookProcessPath) == 0 && !m_hook)
 	{
-		CAudioDataHooker::ms_log.Trace(_T(">>>>> CAudioDataHooker::StartWork : [%s, %s]\n"), pHookProcessPath, buf);
+		CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::StartWork: [%s, %s]\n"), pHookProcessPath, buf);
 		m_pNotifyBuffer = (char*)malloc(dwNOTIFY_SIZE * 2);
 
 		Hook();
@@ -304,6 +318,7 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 		DWORD installCount = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0);
 		installCount++;
 		m_sharedMem.SetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, installCount);
+		CAudioDataHooker::ms_log.Trace(_T("INSTALL_COUNT_SECTION_NAME : [%d,%s]\n"),installCount,pHookProcessPath);
 
 		//increase the reference count of the hookdll 
 		TCHAR hookDllFilePath[MAX_PATH]; 
@@ -326,6 +341,7 @@ void CAudioDataHooker::StopWork()
 {
 	if (m_hook)
 	{
+		CAudioDataHooker::ms_log.Trace(_T("StopWork %s\n"),m_strApp);
 		DWORD installCount = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0);
 		if (installCount > 0)
 		{
@@ -401,9 +417,9 @@ void CAudioDataHooker::SetHookCertainProcess(const TCHAR* pHookProcessPath)
 	}
 }
 
-CAudioDataHooker* CAudioDataHooker::Instance()
+CAudioDataHooker* CAudioDataHooker::Instance(TCHAR *pTStr /*= _T("")*/)
 {
-	static CAudioDataHooker s_audioDataHooker;
+	static CAudioDataHooker s_audioDataHooker(pTStr);
 	return &s_audioDataHooker;
 }
 
@@ -474,7 +490,7 @@ HRESULT _stdcall CAudioDataHooker::HookDSoundCreateBuffer(IDirectSound* pDirectS
 {
 	INSYNC(Instance()->m_lock);
 	HRESULT hr = S_FALSE;
-
+	CAudioDataHooker::ms_log.Trace(_T("HookDSoundCreateBuffer\n"));
 	hr = Instance()->m_origDsoundCreateBuffer(pDirectSound, pcDSBufferDesc, ppDSBuffer, pUnkOuter);
 
 	if (*ppDSBuffer != NULL && pcDSBufferDesc->lpwfxFormat != NULL)
@@ -670,6 +686,7 @@ HRESULT _stdcall CAudioDataHooker::HookDSound8CreateBuffer(IDirectSound8* pDirec
 MMRESULT WINAPI CAudioDataHooker::HookWaveOutClose(HWAVEOUT hwo)
 {
 	INSYNC(Instance()->m_lock);
+	CAudioDataHooker::ms_log.Trace(_T("HookWaveOutClose\n"));
 	try
 	{
 		MMRESULT hr = MMSYSERR_ERROR;
@@ -694,6 +711,7 @@ MMRESULT WINAPI CAudioDataHooker::HookWaveOutClose(HWAVEOUT hwo)
 MMRESULT WINAPI CAudioDataHooker::HookWaveOutWrite(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh)
 {
 	INSYNC(Instance()->m_lock);
+	CAudioDataHooker::ms_log.Trace(_T("HookWaveOutWrite..\n"));
 	try
 	{
 		MMRESULT hr = MMSYSERR_ERROR;
@@ -718,6 +736,7 @@ MMRESULT WINAPI CAudioDataHooker::HookWaveOutOpen(LPHWAVEOUT phwo, UINT uDeviceI
 	DWORD dwCallback, DWORD dwCallbackInstance, DWORD fdwOpen)
 {		
 	INSYNC(Instance()->m_lock);
+	CAudioDataHooker::ms_log.Trace(_T("HookWaveOutOpen\n"));
 	try
 	{
 		MMRESULT hr = MMSYSERR_ERROR;
@@ -744,6 +763,7 @@ MMRESULT WINAPI CAudioDataHooker::HookWaveOutOpen(LPHWAVEOUT phwo, UINT uDeviceI
 MMRESULT WINAPI CAudioDataHooker::HookWaveOutPause(HWAVEOUT hwo)
 {
 	INSYNC(Instance()->m_lock);
+	CAudioDataHooker::ms_log.Trace(_T("HookWaveOutPause..\n"));
 	try
 	{
 		MMRESULT hr = MMSYSERR_ERROR;
@@ -768,6 +788,7 @@ MMRESULT WINAPI CAudioDataHooker::HookWaveOutPause(HWAVEOUT hwo)
 MMRESULT WINAPI CAudioDataHooker::HookWaveOutRestart(HWAVEOUT hwo)
 {
 	INSYNC(Instance()->m_lock);
+	CAudioDataHooker::ms_log.Trace(_T("HookWaveOutRestart..\n"));
 	try
 	{
 		MMRESULT hr = MMSYSERR_ERROR;
@@ -793,6 +814,7 @@ MMRESULT WINAPI CAudioDataHooker::HookWaveOutRestart(HWAVEOUT hwo)
 MMRESULT WINAPI CAudioDataHooker::HookWaveOutReset(HWAVEOUT hwo)
 {
 	INSYNC(Instance()->m_lock);
+	CAudioDataHooker::ms_log.Trace(_T("HookWaveOutReset...\n"));
 	try
 	{
 		MMRESULT hr = MMSYSERR_ERROR;
@@ -818,6 +840,7 @@ MMRESULT WINAPI CAudioDataHooker::HookWaveOutSetVolume(HWAVEOUT hwo, DWORD dwVol
 	MMRESULT hr = MMSYSERR_ERROR;
 	DWORD curVolume;
 	hr = waveOutGetVolume(hwo, &curVolume);
+	CAudioDataHooker::ms_log.Trace(_T("HookWaveOutSetVolume..\n"));
 	if (hr != MMSYSERR_NOERROR)
 	{ 
 		return hr;
@@ -861,6 +884,7 @@ void CAudioDataHooker::Hook()
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 
+	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::Hook: %s\n"),m_strApp);
 	m_dsoundDll = LoadLibrary(_T("dsound.dll"));
 	m_origDirectSoundCreate = (PFN_DIRECTSOUNDCREATE)GetProcAddress(m_dsoundDll, "DirectSoundCreate");
 	DetourAttach(&(PVOID&)m_origDirectSoundCreate, &HookDirectSoundCreate);
@@ -898,6 +922,7 @@ void CAudioDataHooker::UnHook()
 {
 	INSYNC(m_lock);
 
+	CAudioDataHooker::ms_log.Trace(_T("UnHook. %s\n"),m_strApp);
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 

@@ -40,7 +40,7 @@ BOOL APIENTRY DllMain( HINSTANCE hModule,
 			hDll = hModule;
 			GetModuleFileName(GetModuleHandle(NULL), buffer, sizeof(buffer));	
 			CAudioDataHooker::ms_log.Trace(_T("This process need to hook: %s\n"),buffer);
-			return CAudioDataHooker::Instance()->StartWork(buffer, hModule);
+			return CAudioDataHooker::Instance(buffer)->StartWork(buffer, hModule);
 		}
 		break;
 	case DLL_THREAD_ATTACH:
@@ -53,6 +53,10 @@ BOOL APIENTRY DllMain( HINSTANCE hModule,
 		break;
 	case DLL_PROCESS_DETACH:
 		{
+			TCHAR buffer[256];
+			memset(buffer, 0, sizeof(buffer));
+			GetModuleFileName(GetModuleHandle(NULL), buffer, sizeof(buffer));
+			CAudioDataHooker::ms_log.Trace(_T("Detach process %s\n"),buffer);
 		}
 		break;
 	}
@@ -92,6 +96,7 @@ HOOK_AUDIO_API bool InstallHookAudio(const TCHAR* pHookPlayerFilePath)
 	}
 	sharedMem.SetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, hookRef);
 	sharedMem.SetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_EMPTY);
+	CAudioDataHooker::ms_log.Trace(_T("InstallHookAudio: START_SECTION_NAME [%d, %s]\n"),hookRef,pHookPlayerFilePath);
 	OutputDebugStringA("pszHOOK_PROCESS_COMMAND_SECTION_NAME dwHOOK_AUDIO_DATA_EMPTY\r\n");
 	return true;
 }
@@ -114,6 +119,7 @@ HOOK_AUDIO_API void RemoveHookAudio()
 				hookRef += 2;
 			}
 			sharedMem.SetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, hookRef);
+			CAudioDataHooker::ms_log.Trace(_T("RemoveHookAudio:START_SECTION_NAME [%d]\n"), hookRef);
 		//}
 	}
 }

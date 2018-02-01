@@ -63,7 +63,9 @@ void CAPIHookLog::Trace(TCHAR* pLog, ...)
 			va_list ap;
 			va_start(ap, pLog);
 			_vsntprintf(buf, sizeof(buf), pLog, ap);
-			_ftprintf(log, _T("%s"), buf);
+			SYSTEMTIME st;
+			GetLocalTime(&st);
+			_ftprintf(log, _T("%d%02d%02d-%02d%02d%02d%03d:  %s"),st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wMilliseconds, buf);
 
 			fclose(log);
 		}
