@@ -7,7 +7,8 @@
 #include <vector>
 
 #include "tstring.h" 
-
+#include "FileIO.h"
+#include <atlstr.h>
 
 #ifndef __MAX
 #   define __MAX(a, b)   (((a) > (b)) ? (a) : (b))
@@ -84,4 +85,8 @@ BOOL StartupProcess(const TCHAR* pProcessName);
 BOOL IsProcessRunning(const TCHAR* pProcessName);
 BOOL KillProcess(LPTSTR pProcessName);
 
+CString s2cs(const std::string &str);
+std::string cs2s(const CString &str);
+
+extern CFileIO gFileLog;
 #endif

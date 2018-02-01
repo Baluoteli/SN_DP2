@@ -9,6 +9,7 @@
 #include "APIHookLog.h"
 #include "AudioDataHooker.h"
 #include "SharedMem.h"
+#include "Utils.h"
 
 #pragma data_seg(".shared")
 HHOOK	g_hook = NULL;
@@ -38,7 +39,7 @@ BOOL APIENTRY DllMain( HINSTANCE hModule,
 			memset(buffer, 0, sizeof(buffer));
 			hDll = hModule;
 			GetModuleFileName(GetModuleHandle(NULL), buffer, sizeof(buffer));	
-			CAudioDataHooker::ms_log.Trace(_T("This process need to hook: %s\n"), buffer);
+			CAudioDataHooker::ms_log.Trace(_T("This process need to hook: %s\n"),buffer);
 			return CAudioDataHooker::Instance()->StartWork(buffer, hModule);
 		}
 		break;
@@ -60,6 +61,7 @@ BOOL APIENTRY DllMain( HINSTANCE hModule,
 
 HOOK_AUDIO_API bool InstallHookAudio(const TCHAR* pHookPlayerFilePath)
 {
+	gFileLog.write(__FUNCTION__);
 	CAudioDataHooker::Instance()->SetHookCertainProcess(pHookPlayerFilePath);
 	CSharedMem sharedMem(pszSHARE_MAP_FILE_NAME, dwSHARE_MEM_SIZE);
 	DWORD hookRef = sharedMem.GetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, 0);
@@ -98,6 +100,7 @@ HOOK_AUDIO_API void RemoveHookAudio()
 {
 	if (g_hook != NULL)
 	{
+		gFileLog.write(__FUNCTION__);
 		CSharedMem sharedMem(pszSHARE_MAP_FILE_NAME, dwSHARE_MEM_SIZE);
 		//if (sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0) == 0)
 		//{
@@ -117,6 +120,7 @@ HOOK_AUDIO_API void RemoveHookAudio()
 
 void UninstallHook()
 {
+	gFileLog.write(__FUNCTION__);
 	if (g_hook != NULL)
 	{
 		RemoveHookAudio();

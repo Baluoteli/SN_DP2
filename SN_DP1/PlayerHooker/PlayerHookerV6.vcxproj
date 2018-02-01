@@ -94,6 +94,7 @@
     <ClCompile Include="detours\disasm.cpp" />
     <ClCompile Include="detours\image.cpp" />
     <ClCompile Include="detours\modules.cpp" />
+    <ClCompile Include="FileIO.cpp" />
     <ClCompile Include="HookAudioDll.cpp" />
     <ClCompile Include="HookDSoundBuffer.cpp" />
     <ClCompile Include="PlayerHookerImpl.cpp" />
@@ -117,6 +118,7 @@
     <ClInclude Include="detours\detver.h" />
     <ClInclude Include="detours\disasm.h" />
     <ClInclude Include="dsound.h" />
+    <ClInclude Include="FileIO.h" />
     <ClInclude Include="HookAudioDll.h" />
     <ClInclude Include="HookDSoundBuffer.h" />
     <ClInclude Include="include\PlayerHooker.h" />

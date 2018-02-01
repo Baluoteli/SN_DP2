@@ -39,7 +39,7 @@ CAudioDataHooker::CAudioDataHooker(): m_hook(false), m_sharedMem(pszSHARE_MAP_FI
 	, m_origDsoundBufferPlay(NULL), m_origDsoundBufferRelease(NULL), m_origDsoundBufferSetCurrentPosition(NULL)
 	, m_origDsoundBufferSetVolume(NULL), m_origDsoundBufferStop(NULL), m_origDsoundBufferLock(NULL)
 	, m_origDirectSoundCreate(NULL), m_origDirectSoundCreate8(NULL), m_origDsound8CreateBuffer(NULL)
-	, m_origDsoundCreateBuffer(NULL)
+	, m_origDsoundCreateBuffer(NULL), m_ncount(0)
 {
 	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::CAudioDataHooker()\n"));
 	if (m_sharedMem.IsCreated()) 
@@ -293,6 +293,7 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::StartWork: [%s, %s]\n"), pHookProcessPath, buf);
 	if (_tcsicmp(buf, pHookProcessPath) == 0 && !m_hook)
 	{
+		CAudioDataHooker::ms_log.Trace(_T(">>>>> CAudioDataHooker::StartWork : [%s, %s]\n"), pHookProcessPath, buf);
 		m_pNotifyBuffer = (char*)malloc(dwNOTIFY_SIZE * 2);
 
 		Hook();

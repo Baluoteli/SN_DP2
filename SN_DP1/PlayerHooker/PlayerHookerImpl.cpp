@@ -6,23 +6,27 @@ CPlayerHookerV6::CPlayerHookerV6()
 	: mHaveHook(false)
 	, mpAudioInput(NULL)
 {
-
+	//gFileLog.openLog("D:\\V6room\\NativeHook.log", OPEN_ALWAYS);
+	//gFileLog.write("===========LocalBuild==========\r\n");
 }
 
 CPlayerHookerV6::~CPlayerHookerV6()
 {
 	stopAudioCapture();
 	stopHook();
+	gFileLog.close();
 }
 
 int CPlayerHookerV6::startHook(TCHAR* playerPath)
 {
+	hookexepath = playerPath;
+	gFileLog.write(__FUNCTION__);
 	if (IsProcessRunning(playerPath))
 	{
 		if (!isHooking())
 		{
 			Hook(playerPath);
-			KillProcess(playerPath);
+			//KillProcess(playerPath);
 			StartupProcess(playerPath);
 		}
 	}
@@ -38,6 +42,7 @@ int CPlayerHookerV6::startHook(TCHAR* playerPath)
 
 void CPlayerHookerV6::stopHook()
 {
+	gFileLog.write(__FUNCTION__);
 	//KillProcess(hookexepath);
 	RemoveHookAudio();
 }
@@ -50,6 +55,7 @@ bool CPlayerHookerV6::isHooking()
 
 int CPlayerHookerV6::startAudioCapture(IAudioCaptureCallback* callback)
 {
+	gFileLog.write(__FUNCTION__);
 	if (mpAudioInput == NULL)
 	{
 		mpAudioInput = new CHookAudioInput();
@@ -64,8 +70,10 @@ int CPlayerHookerV6::startAudioCapture(IAudioCaptureCallback* callback)
 
 void CPlayerHookerV6::stopAudioCapture()
 {
+	gFileLog.write(__FUNCTION__);
 	if (mpAudioInput != NULL)
 	{
+		KillProcess(hookexepath);
 		mpAudioInput->Stop();
 		delete mpAudioInput;
 		mpAudioInput = NULL;
@@ -75,6 +83,7 @@ void CPlayerHookerV6::stopAudioCapture()
 
 void CPlayerHookerV6::Hook(TCHAR* playerPath)
 {
+	gFileLog.write(__FUNCTION__);
 	InstallHookAudio(playerPath);
 }
 

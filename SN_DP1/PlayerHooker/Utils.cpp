@@ -5,6 +5,8 @@
 
 #pragma warning (disable : 4311)
 
+CFileIO gFileLog;
+
 tstring ExtractFileName( const tstring& strFilePath )
 {
 	tstring strFileName;
@@ -119,4 +121,15 @@ BOOL KillProcess( LPTSTR pProcessName )
 
 	Sleep(100);
 	return !terminateProcessIDs.empty();
+}
+
+CString s2cs(const std::string &str)
+{
+	return CString(str.c_str());
+}
+
+std::string cs2s(const CString &str)
+{
+	CString sTemp(str);
+	return CStringA(sTemp.GetBuffer()).GetBuffer();
 }

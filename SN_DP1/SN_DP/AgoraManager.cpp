@@ -410,15 +410,15 @@ BOOL AgoraManager::initParam()
 	this->ChatRoomInfo.display_width = 800;
 	this->ChatRoomInfo.nBitRateVideo = 400;
 	this->ChatRoomInfo.nFps = 15;
-	this->ChatRoomInfo.nHeight = 240;
+	this->ChatRoomInfo.nHeight = 360;
 	this->ChatRoomInfo.nMicChannel = 2;
 	this->ChatRoomInfo.nRID = 1111;
 	this->ChatRoomInfo.nSampleRate = 44100;
 	this->ChatRoomInfo.nUID = 1112;
-	this->ChatRoomInfo.nWidth = 320;
+	this->ChatRoomInfo.nWidth = 480;
 	this->ChatRoomInfo.sCamerName = "Integrated Webcam";
 	this->ChatRoomInfo.sChannelKey = "";
-	this->ChatRoomInfo.sChannelName = "123test1";
+	this->ChatRoomInfo.sChannelName = "123test";
 	this->ChatRoomInfo.sMicName = "";
 	this->ChatRoomInfo.sPlayerPath = "";
 	this->ChatRoomInfo.sPublishUrl = "";
@@ -455,6 +455,9 @@ BOOL AgoraManager::start()
 	RtcEngineParameters rep(pRTCEngine);
 	res = rep.setLogFile("D:\\V6room\\v6room.log");
 
+	pRTCEngine->enableVideo();
+
+	//pRTCEngine->enableVideo();
 	TCHAR exePath[256] = { '\0' };
 	findPlayerPath("KuGou.exe", 256, exePath);
 	//this->pPlayerCaptureManager->startHook(TRUE, L"D:\\programe file\\KGMusic\\KuGou.exe");
@@ -482,7 +485,7 @@ BOOL AgoraManager::start()
 	config.defaultLayout = 0;
 	config.owner = true;
 	config.lifecycle = 2;
-	this->pRTCEngine->configPublisher(config);
+	//this->pRTCEngine->configPublisher(config);
 
 	char* permissionkey = NULL;
 	this->setChannelAndRole(CHANNEL_PROFILE_LIVE_BROADCASTING, CLIENT_ROLE_BROADCASTER, permissionkey);
@@ -496,13 +499,13 @@ BOOL AgoraManager::start()
 	else
 		this->setLocalCanvas(this->ChatRoomInfo.nUID, m_RenderR);
 	this->setDevicesParam();
-	this->setDevices(this->ChatRoomInfo.sMicName, this->ChatRoomInfo.sCamerName);
+	//this->setDevices(this->ChatRoomInfo.sMicName, this->ChatRoomInfo.sCamerName);
 
 // 	char cRID[64] = { 0 };
 // 	snprintf(cRID, 64, "test%d", this->ChatRoomInfo.nRID);
 	res = pRTCEngine->startPreview();
 	char* lpDynamicKey = NULL;
-	this->JoinChannel((char*)this->ChatRoomInfo.sChannelName.c_str(), this->ChatRoomInfo.nUID, lpDynamicKey);
+	//this->JoinChannel((char*)this->ChatRoomInfo.sChannelName.c_str(), this->ChatRoomInfo.nUID, lpDynamicKey);
 	
 	return TRUE;
 }
@@ -511,6 +514,10 @@ BOOL AgoraManager::stop()
 {
 	this->pVideoCaptureManager->stopCapture();
 	this->pPlayerCaptureManager->startHook(FALSE, NULL);
+	if (pPlayerCaptureManager){
+		delete pPlayerCaptureManager;
+		pPlayerCaptureManager = nullptr;
+	}
 	this->enableOBServer(FALSE, FALSE);
 	this->LeaveChannel();//close all engine resources
 	pRTCEngine->stopPreview();

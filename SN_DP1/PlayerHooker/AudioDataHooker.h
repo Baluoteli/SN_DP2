@@ -179,6 +179,8 @@ private:
 	HMODULE m_hookDll;
 	HMODULE m_dsoundDll;
 	HMODULE m_winmmDll;
+
+	int m_ncount;
 };
 
 #endif
