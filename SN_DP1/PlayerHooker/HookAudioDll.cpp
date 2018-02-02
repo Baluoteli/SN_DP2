@@ -140,8 +140,6 @@ HOOK_AUDIO_API void RemoveHookAudio()
 			sharedMem.SetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, hookRef);
 			CAudioDataHooker::ms_log.Trace(_T("RemoveHookAudio:START_SECTION_NAME [%d]\n"), hookRef);
 		//}
-
-			CAudioDataHooker::Instance()->StopWork();
 	}
 }
 

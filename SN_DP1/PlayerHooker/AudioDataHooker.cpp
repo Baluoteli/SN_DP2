@@ -39,8 +39,10 @@ CAudioDataHooker::CAudioDataHooker(TCHAR *pTStr) : m_hook(false), m_sharedMem(ps
 	, m_origDsoundBufferPlay(NULL), m_origDsoundBufferRelease(NULL), m_origDsoundBufferSetCurrentPosition(NULL)
 	, m_origDsoundBufferSetVolume(NULL), m_origDsoundBufferStop(NULL), m_origDsoundBufferLock(NULL)
 	, m_origDirectSoundCreate(NULL), m_origDirectSoundCreate8(NULL), m_origDsound8CreateBuffer(NULL)
-	, m_origDsoundCreateBuffer(NULL), m_ncount(0), m_strApp(pTStr)
+	, m_origDsoundCreateBuffer(NULL), m_ncount(0)
 {
+	ZeroMemory(m_strApp, 256 * sizeof(TCHAR));
+	memcpy(m_strApp, (void*)pTStr, sizeof(DWORD) * _tcsclen(pTStr) * sizeof(TCHAR));
 	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::CAudioDataHooker() %s\n"),m_strApp);
 	if (m_sharedMem.IsCreated()) 
 	{
@@ -88,6 +90,7 @@ void CAudioDataHooker::OnIntervalExecute()
 {
 	try
 	{
+	
 		DWORD hookCommand = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_UNKNOWN);
  	//	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::OnIntervalExecute: %d, %d, %d\n"), hookCommand, ms_hookDataPools.size(), GetTickCount());
 		if (hookCommand == dwHOOK_AUDIO_DATA_NEED)
@@ -228,7 +231,7 @@ void CAudioDataHooker::OnIntervalExecute()
 				//m_sharedMem.SetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_EMPTY);
 				//m_sharedMem.SetValue(pszHOOK_PROCESS_AUDIO_DATA_SECTION_NAME, m_pNotifyBuffer, 1);
 			//	OutputDebugStringA("pszHOOK_PROCESS_COMMAND_SECTION_NAME dwHOOK_AUDIO_DATA_EMPTY\r\n");
-				CAudioDataHooker::ms_log.Trace(_T("PROCESS_COMMAND_SECTION_NAME: %d \n"),GetTickCount());
+				//CAudioDataHooker::ms_log.Trace(_T("PROCESS_COMMAND_SECTION_NAME Empty: %d \n"),GetTickCount());
 				
 			}
 		}
@@ -248,7 +251,7 @@ void CAudioDataHooker::OnIntervalExecute()
 
 		if (m_sharedMem.GetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, 0) % 2 == 0)
 		{
-			if (m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0) == 1)
+			if (m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0) >= 1)
 			{
 				m_pIntervalThread->Terminate();
 			}
@@ -304,7 +307,7 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 	findPlayerPath("KuGou.exe", 256, exePath);
 	m_sharedMem.SetValue(pszHOOK_PROCESS_PATH_SECTION_NAME, (void*)exePath,
 		(DWORD)_tcsclen(exePath) * sizeof(TCHAR));
-	m_strApp = exePath;
+	memcpy(m_strApp, (void*)exePath, sizeof(DWORD) * _tcsclen(exePath) * sizeof(TCHAR));
 
 	if (!m_sharedMem.GetValue(pszHOOK_PROCESS_PATH_SECTION_NAME, buf, &valueSize))
 	{
@@ -312,6 +315,10 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 	}
 	if (_tcsicmp(buf, pHookProcessPath) == 0 && !m_hook)
 	{
+		DWORD installCount = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0);
+		if (installCount > 0){
+			return FALSE;
+		}
 		CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::StartWork: [%s, %s]\n"), pHookProcessPath, buf);
 		m_pNotifyBuffer = (char*)malloc(dwNOTIFY_SIZE * 2);
 
@@ -320,7 +327,6 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 		m_pResamplerEx = CreateResamplerEx();
 
 		m_pIntervalThread = new CIntervalThread(this, 20);
-		DWORD installCount = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0);
 		installCount++;
 		m_sharedMem.SetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, installCount);
 		CAudioDataHooker::ms_log.Trace(_T("INSTALL_COUNT_SECTION_NAME : [%d,%s]\n"),installCount,pHookProcessPath);
@@ -329,6 +335,7 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 		TCHAR hookDllFilePath[MAX_PATH]; 
 		::GetModuleFileName(hModule, hookDllFilePath, MAX_PATH);
 		m_hookDll = LoadLibrary(hookDllFilePath);
+		CAudioDataHooker::ms_log.Trace(_T("LoadLibrary dll : %s\n"),hookDllFilePath);
 		m_hook = true;
 
 		return TRUE;
@@ -353,12 +360,14 @@ void CAudioDataHooker::StopWork()
 			installCount--;
 		}
 		m_sharedMem.SetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, installCount);
+		CAudioDataHooker::ms_log.Trace(_T("INSTALL_COUNT_SECTION_NAME: [%d, %s]\n"),installCount,m_strApp);
 
 		//全部卸载完后，取消动态链接库映射
-		if (installCount == 0)
+		if (installCount >= 0)
 		{
 			if (m_pIntervalThread != NULL)
 			{
+				CAudioDataHooker::ms_log.Trace(_T("delete IntervalThread :  %s\n"), m_strApp);
 				delete m_pIntervalThread;
 				m_pIntervalThread = NULL;
 				m_sharedMem.SetValue(pszHOOK_PROCESS_AUDIO_DATA_SECTION_NAME, m_pNotifyBuffer, 1);
@@ -404,10 +413,12 @@ void CAudioDataHooker::StopWork()
 
 			if (m_hookDll != NULL)
 			{
+				CAudioDataHooker::ms_log.Trace(_T("FreeLibrary: %s\n"),m_strApp);
 				FreeLibrary(m_hookDll);
 				m_hookDll = NULL;
 			}
 
+			if (installCount == 0)
 			UninstallHook();
 		}
 	}
