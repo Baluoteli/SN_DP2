@@ -60,8 +60,8 @@ void CHookDSoundBuffer::Stop()
 {
 	m_stop = true;
 	CAudioDataHooker::ms_log.Trace(_T("CHookDirectSoundBuffer Stop:%d\n"), GetTickCount());
-	m_pAudioDataPool->SetEndWrite(true);
-	m_pAudioDataPool->SetCanRead(false);
+	//m_pAudioDataPool->SetEndWrite(true);
+	//m_pAudioDataPool->SetCanRead(false);
 }
 
 void CHookDSoundBuffer::CapturePlayData(bool forceRead)
@@ -101,8 +101,7 @@ void CHookDSoundBuffer::CapturePlayData(bool forceRead)
 				m_pAudioDataPool->Write(m_pBufferAddr + m_currentPlayPos, m_totalBufferSize - m_currentPlayPos);
 				m_pAudioDataPool->Write(m_pBufferAddr, currentPlayPos);
 			}
-// 	 		CAudioDataHooker::ms_log.Trace(_T("IDirectSoundBuffer->Lock: %d, %d, %d, %d, %d\n"), 
-// 	 			updateSize, m_currentPlayPos, currentPlayPos, *ppvAudioPtr1, *ppvAudioPtr2);
+ 	 		//CAudioDataHooker::ms_log.Trace(_T("IDirectSoundBuffer->Lock: %d, %d, %d\n"), updateSize, m_currentPlayPos, currentPlayPos);
 			m_currentPlayPos = currentPlayPos;
 		}
 	}	

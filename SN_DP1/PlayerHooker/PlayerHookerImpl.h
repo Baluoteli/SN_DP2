@@ -25,7 +25,7 @@ private:
 
 	bool mHaveHook;
 	CHookAudioInput* mpAudioInput;
-	LPTSTR hookexepath;
+	TCHAR m_HookExePath[256];
 };
 
 #endif

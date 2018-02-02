@@ -454,6 +454,10 @@ BOOL AgoraManager::start()
 	//open log
 	RtcEngineParameters rep(pRTCEngine);
 	res = rep.setLogFile("D:\\V6room\\v6room.log");
+	DeleteFile(_T("D:\\V6room\\PlayerHookerV6.txt"));
+	DeleteFile(_T("D:\\V6room\\v6room.log"));
+	DeleteFile(_T("D:\\V6room\\HookSrc.pcm"));
+	DeleteFile(_T("D:\\V6room\\HookDest.pcm"));
 
 	//pRTCEngine->enableVideo();
 	TCHAR exePath[256] = { '\0' };
@@ -512,11 +516,11 @@ BOOL AgoraManager::stop()
 {
 	this->pVideoCaptureManager->stopCapture();
 	this->pPlayerCaptureManager->startHook(FALSE, NULL);
+	this->enableOBServer(FALSE, FALSE);
 	if (pPlayerCaptureManager){
 		delete pPlayerCaptureManager;
 		pPlayerCaptureManager = nullptr;
 	}
-	this->enableOBServer(FALSE, FALSE);
 	this->LeaveChannel();//close all engine resources
 	pRTCEngine->stopPreview();
 	this->ChatRoomInfo.bPublishing = FALSE;

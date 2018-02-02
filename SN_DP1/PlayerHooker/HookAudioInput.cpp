@@ -58,6 +58,9 @@ void CHookAudioInput::Execute()
 
 		canReadHookData = haveIntallHook
 			&& (m_sharedMem.GetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, 0) == m_hookRef);
+		char szLog[1024] = {'\0'};
+		sprintf_s(szLog, "canReadHookData: %d %d \n", canReadHookData,GetTickCount());
+		OutputDebugStringA(szLog);
 
 		if (canReadHookData)
 		{
@@ -90,7 +93,7 @@ void CHookAudioInput::Execute()
 		{
 			break;
 		}
-
+		
 		m_hookChunk.Reset();
 
 		if (canReadHookData)
@@ -98,14 +101,33 @@ void CHookAudioInput::Execute()
 			hookCommand = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_WAIT);
 			if (hookCommand != dwHOOK_AUDIO_DATA_EMPTY )
 			{
+				char szLog1[256] = { '\0' };
+				sprintf_s(szLog, "Audio_Data_Section_Name: : %d %d \n", hookDataLen, GetTickCount());
+				OutputDebugStringA(szLog);
+
 				m_onceHaveHookData = true;
 				m_sharedMem.SetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_WAIT);
 				//OutputDebugStringA("pszHOOK_PROCESS_COMMAND_SECTION_NAME dwHOOK_AUDIO_DATA_WAIT\r\n");
 				if (m_sharedMem.GetValue(pszHOOK_PROCESS_AUDIO_DATA_SECTION_NAME, m_pNotifyBuffer, &hookDataLen))
 				{
+					//CAudioDataHooker::ms_log.Trace(_T("Audio_DATA_SECTION_NAME: %d\n"),hookDataLen);
+
+#if 1
+					FILE* outfile = fopen("D:\\V6room\\HookDest.pcm", "ab+");
+					if (outfile)
+					{
+						fwrite(m_pNotifyBuffer, 1, hookDataLen, outfile);
+						fclose(outfile);
+						outfile = NULL;
+					}
+#endif
+
 					m_hookChunk.SetData(m_pNotifyBuffer, hookDataLen, dwHOOK_AUDIO_DATA_SAMPLERATE,
 						dwHOOK_AUDIO_DATA_CHANNEL, 32, true);
 					NotifyCaptureData();
+					char szLog2[256] = { '\0' };
+					sprintf_s(szLog, "NotifyCaptureData: : %d %d \n", hookDataLen, GetTickCount());
+					OutputDebugStringA(szLog);
 				}
 			}
 			else{
@@ -117,13 +139,12 @@ void CHookAudioInput::Execute()
 					lasttime = GetTickCount();
 					char szbuf[128] = { '\0' };
 					sprintf_s(szbuf, "DATA_EMPTY Rate: %d\r\n", nCount);
-					OutputDebugStringA(szbuf);
+					//OutputDebugStringA(szbuf);
 					nCount = 0;
 				} 
 			}
 		}
-
-
+		
 		m_sleep.Wait();
 	}
 }

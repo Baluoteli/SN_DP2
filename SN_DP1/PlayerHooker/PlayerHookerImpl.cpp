@@ -6,28 +6,38 @@ CPlayerHookerV6::CPlayerHookerV6()
 	: mHaveHook(false)
 	, mpAudioInput(NULL)
 {
+	CAudioDataHooker::ms_log.Trace(_T("===================Local Build Begin.====================\n"));
+	CAudioDataHooker::ms_log.Trace(_T("CPlayerHookerV6::CPlayerHookerV6() \n"));
+	ZeroMemory(m_HookExePath, 256 * sizeof(TCHAR));
 	//gFileLog.openLog("D:\\V6room\\NativeHook.log", OPEN_ALWAYS);
 	//gFileLog.write("===========LocalBuild==========\r\n");
 }
 
 CPlayerHookerV6::~CPlayerHookerV6()
 {
-	stopAudioCapture();
-	stopHook();
-	gFileLog.close();
+	CAudioDataHooker::ms_log.Trace(_T("CPlayerHookerV6::~CPlayerHookerV6().\n"));
+	CAudioDataHooker::ms_log.Trace(_T("===================Local Build End.====================\n"));
+
+// 	stopAudioCapture();
+// 	stopHook();
+// 	gFileLog.close();
 }
 
 int CPlayerHookerV6::startHook(TCHAR* playerPath)
 {
-	hookexepath = playerPath;
-	gFileLog.write(__FUNCTION__);
+	memcpy(m_HookExePath, (void*)playerPath, sizeof(DWORD) * _tcsclen(playerPath) * sizeof(TCHAR));
+	CAudioDataHooker::ms_log.Trace(_T("startHook: %s\n"), m_HookExePath);
 	if (IsProcessRunning(playerPath))
 	{
 		if (!isHooking())
 		{
 			Hook(playerPath);
 			//KillProcess(playerPath);
-			StartupProcess(playerPath);
+			//StartupProcess(playerPath);
+		}
+		else{
+
+			Hook(playerPath);
 		}
 	}
 	else
@@ -36,13 +46,12 @@ int CPlayerHookerV6::startHook(TCHAR* playerPath)
 		StartupProcess(playerPath);
 	}
 
-	hookexepath = playerPath;
 	return 0;
 }
 
 void CPlayerHookerV6::stopHook()
 {
-	gFileLog.write(__FUNCTION__);
+	CAudioDataHooker::ms_log.Trace(_T("stopHook : %s\n"), m_HookExePath);
 	//KillProcess(hookexepath);
 	RemoveHookAudio();
 }
@@ -55,7 +64,7 @@ bool CPlayerHookerV6::isHooking()
 
 int CPlayerHookerV6::startAudioCapture(IAudioCaptureCallback* callback)
 {
-	gFileLog.write(__FUNCTION__);
+	CAudioDataHooker::ms_log.Trace(_T("startAudioCapture : %s\n"), m_HookExePath);
 	if (mpAudioInput == NULL)
 	{
 		mpAudioInput = new CHookAudioInput();
@@ -70,10 +79,10 @@ int CPlayerHookerV6::startAudioCapture(IAudioCaptureCallback* callback)
 
 void CPlayerHookerV6::stopAudioCapture()
 {
-	gFileLog.write(__FUNCTION__);
+	CAudioDataHooker::ms_log.Trace(_T("stopAudioCapture : %s\n"), m_HookExePath);
 	if (mpAudioInput != NULL)
 	{
-		KillProcess(hookexepath);
+		//KillProcess(m_HookExePath);
 		mpAudioInput->Stop();
 		delete mpAudioInput;
 		mpAudioInput = NULL;
@@ -83,7 +92,7 @@ void CPlayerHookerV6::stopAudioCapture()
 
 void CPlayerHookerV6::Hook(TCHAR* playerPath)
 {
-	gFileLog.write(__FUNCTION__);
+	CAudioDataHooker::ms_log.Trace(_T("Hook : %s\n"),playerPath);
 	InstallHookAudio(playerPath);
 }
 

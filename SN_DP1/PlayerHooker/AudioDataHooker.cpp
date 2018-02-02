@@ -89,8 +89,7 @@ void CAudioDataHooker::OnIntervalExecute()
 	try
 	{
 		DWORD hookCommand = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_UNKNOWN);
-// 		CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::OnIntervalExecute: %d, %d, %d\n"), hookCommand, 
-// 			ms_hookDataPools.size(), GetTickCount());
+ 	//	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::OnIntervalExecute: %d, %d, %d\n"), hookCommand, ms_hookDataPools.size(), GetTickCount());
 		if (hookCommand == dwHOOK_AUDIO_DATA_NEED)
 		{
 			INSYNC(ms_lockHookDataPools);
@@ -128,8 +127,12 @@ void CAudioDataHooker::OnIntervalExecute()
 						{
 							canSetVaule = true;
 						}
-// 						CAudioDataHooker::ms_log.Trace(_T("pAudioDataPool Succ Read: %d, %d, %d, %d, %d\n"), canSetVaule,
-// 							pAudioDataPool->GetWaveFormatEx().wFormatTag, channel, bps, sampleRate);
+ 						CAudioDataHooker::ms_log.Trace(_T("pAudioDataPool Succ Read: %d, %d, %d, %d, %d\n"), canSetVaule,
+ 							pAudioDataPool->GetWaveFormatEx().wFormatTag, channel, bps, sampleRate);
+					}
+					else
+					{
+						CAudioDataHooker::ms_log.Trace(_T("pAudioDataPool Read Audio Data failed..\n"));
 					}
 				}
 				else
@@ -205,7 +208,7 @@ void CAudioDataHooker::OnIntervalExecute()
 			{
 				if (audioChunk.GetDataSize() <= dwNOTIFY_SIZE * 2)
 				{
-					FILE* outfile = fopen("D:\V6room\\HookSrc.pcm", "ab+");
+					FILE* outfile = fopen("D:\\V6room\\HookSrc.pcm", "ab+");
 					if (outfile)
 					{
 						fwrite(audioChunk.GetData(), 1, audioChunk.GetDataSize(), outfile);
@@ -222,9 +225,11 @@ void CAudioDataHooker::OnIntervalExecute()
 			}
 			else
 			{
-				m_sharedMem.SetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_EMPTY);
-				m_sharedMem.SetValue(pszHOOK_PROCESS_AUDIO_DATA_SECTION_NAME, m_pNotifyBuffer, 1);
-				OutputDebugStringA("pszHOOK_PROCESS_COMMAND_SECTION_NAME dwHOOK_AUDIO_DATA_EMPTY\r\n");
+				//m_sharedMem.SetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_EMPTY);
+				//m_sharedMem.SetValue(pszHOOK_PROCESS_AUDIO_DATA_SECTION_NAME, m_pNotifyBuffer, 1);
+			//	OutputDebugStringA("pszHOOK_PROCESS_COMMAND_SECTION_NAME dwHOOK_AUDIO_DATA_EMPTY\r\n");
+				CAudioDataHooker::ms_log.Trace(_T("PROCESS_COMMAND_SECTION_NAME: %d \n"),GetTickCount());
+				
 			}
 		}
 		else if (hookCommand == dwHOOK_AUDIO_DATA_EMPTY)
