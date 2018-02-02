@@ -32,8 +32,8 @@ int CPlayerHookerV6::startHook(TCHAR* playerPath)
 		if (!isHooking())
 		{
 			Hook(playerPath);
-			//KillProcess(playerPath);
-			//StartupProcess(playerPath);
+			KillProcess(playerPath);
+			StartupProcess(playerPath);
 		}
 		else{
 
