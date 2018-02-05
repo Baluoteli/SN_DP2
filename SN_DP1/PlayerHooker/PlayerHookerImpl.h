@@ -1,9 +1,11 @@
 #ifndef __PLAYER_HOOKER_IMPL_H__
 #define __PLAYER_HOOKER_IMPL_H__
 #include "PlayerHooker.h"
+#include "Thread.h"
+#include "SleepEvent.h"
 
 class CHookAudioInput;
-class CPlayerHookerV6 : public IPlayerHooker
+class CPlayerHookerV6 : public IPlayerHooker, public CThread
 {
 public:
 	CPlayerHookerV6();
@@ -15,6 +17,9 @@ public:
 	virtual int startAudioCapture(IAudioCaptureCallback* callback);
 	virtual void stopAudioCapture();
 
+protected:
+	void Execute();
+
 private:
 	void Hook(TCHAR* playerPath);
 
@@ -23,7 +28,7 @@ private:
 	static const int kCAPTURE_FRAME_SIZE_IN_MS = 20;
 	static const int kCAPTURE_FRAME_SIZE_IN_BYTE = kCAPTURE_SAMPLE_RATE * kCAPTURE_CHANNEL * 2 * 10 / 1000;
 
-	bool mHaveHook;
+	bool m_HaveHook;
 	CHookAudioInput* mpAudioInput;
 	TCHAR m_HookExePath[256];
 };

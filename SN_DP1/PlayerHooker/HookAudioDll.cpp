@@ -25,6 +25,40 @@ LRESULT CALLBACK HookProc(int ncode, WPARAM wparam, LPARAM lparam)
 	return (CallNextHookEx(g_hook, ncode, wparam, lparam));
 } 
 
+BOOL getCurLogDir(LPTSTR lpCurAppPath, LPTSTR lpCurDllPath)
+{
+	TCHAR szBuf[MAX_PATH] = { _T("\0") };
+	ZeroMemory(szBuf, MAX_PATH);
+	LPTSTR lpLastSlash = _tcsrchr(lpCurAppPath, _T('\\'));
+	memcpy(szBuf, lpCurAppPath, (lpLastSlash - lpCurAppPath) * sizeof(TCHAR));
+	//CAudioDataHooker::ms_log.Trace(_T("process piror path: [%s %d]\n"), szBuf, lpLastSlash - lpCurAppPath);
+
+	TCHAR szbufDll[MAX_PATH] = { _T("\0") };
+	ZeroMemory(szbufDll, MAX_PATH);
+	LPTSTR lpLastSlashDll = _tcsrchr(lpCurDllPath, _T('\\'));
+	memcpy(szbufDll, lpCurDllPath,( lpLastSlashDll - lpCurDllPath) * sizeof(TCHAR));
+	//CAudioDataHooker::ms_log.Trace(_T("hookDll piror path: [%s %d]\n"), szbufDll, lpLastSlashDll - lpCurDllPath);
+
+	CString csHookLogPath;
+	csHookLogPath.Format(_T("%s\\V6room\\%s"), szbufDll, _T("PlayerHookerV6_1.log"));
+	CAudioDataHooker::ms_log.SetLogPath(csHookLogPath.GetBuffer());
+	
+	//create logdir
+	CreateDirectory(szbufDll + CString(_T("\\V6room\\")), NULL);
+
+	if (0 == _tcsicmp(szbufDll, szBuf)){
+		//delete logfile before
+		DeleteFile(csHookLogPath);
+		CAudioDataHooker::ms_log.Trace(_T("===================Local Build Begin.====================\n"));
+		CAudioDataHooker::ms_log.Trace(_T(" [first] setHookLog : [%s, %s]\n"), csHookLogPath, lpCurAppPath);
+		CAudioDataHooker::ms_log.Trace(_T("DebugMode: %d\n"), isDebugMode);
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 BOOL APIENTRY DllMain( HINSTANCE hModule, 
 					  DWORD  ul_reason_for_call, 
 					  LPVOID lpReserved)
@@ -34,13 +68,20 @@ BOOL APIENTRY DllMain( HINSTANCE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		{
+	{
+			isDebugMode = IsDebugMode(hModule);
 			TCHAR buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			hDll = hModule;
-			GetModuleFileName(GetModuleHandle(NULL), buffer, sizeof(buffer));	
+			GetModuleFileName(GetModuleHandle(NULL), buffer, sizeof(buffer));
+
+			TCHAR bufferDll[256];
+			memset(bufferDll, 0, sizeof(bufferDll));
+			GetModuleFileName(hModule, bufferDll, sizeof(bufferDll));
+
+			bool IsMainProcess = getCurLogDir(buffer, bufferDll);
 			CAudioDataHooker::ms_log.Trace(_T("[Attach Process]: %s %d\n"),buffer,GetTickCount());
-			return CAudioDataHooker::Instance(buffer)->StartWork(buffer, hModule);
+			return CAudioDataHooker::Instance(buffer,IsMainProcess)->StartWork(buffer, hModule);
 		}
 		break;
 	case DLL_THREAD_ATTACH:
@@ -68,7 +109,7 @@ BOOL APIENTRY DllMain( HINSTANCE hModule,
 			TCHAR buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			GetModuleFileName(GetModuleHandle(NULL), buffer, sizeof(buffer));
-			CAudioDataHooker::ms_log.Trace(_T("[Detach process] %s\n"),buffer);
+			CAudioDataHooker::ms_log.Trace(_T("[Detach process] %s %d\n"),buffer,GetTickCount());
 		}
 		break;
 	}
@@ -148,7 +189,7 @@ void UninstallHook()
 	CAudioDataHooker::ms_log.Trace(_T("UninstallHook.\n"));
 	if (g_hook != NULL)
 	{
-		RemoveHookAudio();
+		//RemoveHookAudio();
 		UnhookWindowsHookEx(g_hook);
 		g_hook = NULL;
 	}

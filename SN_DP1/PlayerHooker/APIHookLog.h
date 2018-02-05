@@ -14,6 +14,7 @@ public:
 	CAPIHookLog(TCHAR* pLogFileName = NULL);
 	~CAPIHookLog();
 
+	void SetLogPath(TCHAR* pLogPath);
 	void Trace(TCHAR* pLog, ...);
 
 private:

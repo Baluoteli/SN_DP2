@@ -418,7 +418,7 @@ BOOL AgoraManager::initParam()
 	this->ChatRoomInfo.nWidth = 480;
 	this->ChatRoomInfo.sCamerName = "Integrated Webcam";
 	this->ChatRoomInfo.sChannelKey = "";
-	this->ChatRoomInfo.sChannelName = "123test133";
+	this->ChatRoomInfo.sChannelName = "123test134";
 	this->ChatRoomInfo.sMicName = "";
 	this->ChatRoomInfo.sPlayerPath = "";
 	this->ChatRoomInfo.sPublishUrl = "";
@@ -454,7 +454,7 @@ BOOL AgoraManager::start()
 	//open log
 	RtcEngineParameters rep(pRTCEngine);
 	res = rep.setLogFile("D:\\V6room\\v6room.log");
-	DeleteFile(_T("D:\\V6room\\PlayerHookerV6.txt"));
+	//DeleteFile(_T("D:\\V6room\\PlayerHookerV6.txt"));
 	DeleteFile(_T("D:\\V6room\\v6room.log"));
 	DeleteFile(_T("D:\\V6room\\HookSrc.pcm"));
 	DeleteFile(_T("D:\\V6room\\HookDest.pcm"));

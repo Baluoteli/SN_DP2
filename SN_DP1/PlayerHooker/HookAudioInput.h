@@ -51,6 +51,8 @@ private:
 
 	int m_bufferSize;
 	IAudioCaptureCallback* mpCallback;
+
+	tstring m_strAudioPcmPath;
 };
 
 bool HaveHookAudioRunning();

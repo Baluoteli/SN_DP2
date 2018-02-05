@@ -2,10 +2,10 @@
 #include <psapi.h>
 #include <TlHelp32.h>
 
-
 #pragma warning (disable : 4311)
 
 CFileIO gFileLog;
+bool isDebugMode;
 
 tstring ExtractFileName( const tstring& strFilePath )
 {
@@ -134,6 +134,17 @@ std::string cs2s(const CString &str)
 	return CStringA(sTemp.GetBuffer()).GetBuffer();
 }
 
+int str2int(const std::string &str)
+{
+	return atoi(str.data());
+}
+
+int CS2int(const CString &csStr)
+{
+	std::string str = cs2s(csStr);
+	return str2int(str);
+}
+
 bool findPlayerPath(char* exename, int namelen, TCHAR* playerPath)
 {
 #define MY_BUFSIZE 256
@@ -185,3 +196,38 @@ bool findPlayerPath(char* exename, int namelen, TCHAR* playerPath)
 
 	return TRUE;
 }
+
+bool IsDebugMode(HINSTANCE HModule)
+{
+#if 1
+	TCHAR szFilePath[MAX_PATH];
+	CString DebugMode(_T(""));
+
+	::GetModuleFileName(HModule, szFilePath, MAX_PATH);
+	LPTSTR lpLastSlash = _tcsrchr(szFilePath, _T('\\'));
+
+	if (lpLastSlash == NULL)
+		return FALSE;
+
+	SIZE_T nNameLen = MAX_PATH - (lpLastSlash - szFilePath + 1);
+	_tcscpy_s(lpLastSlash + 1, nNameLen, _T("DebugMode.ini"));
+
+	if (::GetFileAttributes(szFilePath) == INVALID_FILE_ATTRIBUTES){
+		CreateFile(szFilePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+			CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+
+		::WritePrivateProfileString(_T("DebugMode"),_T("DebugMode"),_T("0"),szFilePath);
+
+		return FALSE;
+	}
+
+	CString strResolution;
+
+	::GetPrivateProfileString(_T("DebugMode"), _T("DebugMode"), NULL, DebugMode.GetBuffer(MAX_PATH), MAX_PATH, szFilePath);
+
+	DebugMode.ReleaseBuffer();
+
+	return CS2int(DebugMode);
+#endif
+}
+

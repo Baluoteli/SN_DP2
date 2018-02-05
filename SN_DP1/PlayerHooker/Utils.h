@@ -10,6 +10,8 @@
 #include "FileIO.h"
 #include <atlstr.h>
 
+extern bool isDebugMode;
+
 #ifndef __MAX
 #   define __MAX(a, b)   (((a) > (b)) ? (a) : (b))
 #endif
@@ -87,7 +89,11 @@ BOOL KillProcess(LPTSTR pProcessName);
 
 CString s2cs(const std::string &str);
 std::string cs2s(const CString &str);
+int str2int(const std::string &str);
+int CS2int(const CString &csStr);
 bool findPlayerPath(char* exename, int namelen, TCHAR* playerPath);
+
+bool IsDebugMode(HINSTANCE HModule);
 
 extern CFileIO gFileLog;
 #endif

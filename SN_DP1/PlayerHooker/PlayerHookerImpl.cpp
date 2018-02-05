@@ -3,21 +3,17 @@
 #include "HookAudioDll.h"
 #include "HookAudioInput.h"
 CPlayerHookerV6::CPlayerHookerV6()
-	: mHaveHook(false)
+	: m_HaveHook(false)
 	, mpAudioInput(NULL)
+	, CThread(TRUE)
 {
-	CAudioDataHooker::ms_log.Trace(_T("===================Local Build Begin.====================\n"));
 	CAudioDataHooker::ms_log.Trace(_T("CPlayerHookerV6::CPlayerHookerV6() \n"));
 	ZeroMemory(m_HookExePath, 256 * sizeof(TCHAR));
-	//gFileLog.openLog("D:\\V6room\\NativeHook.log", OPEN_ALWAYS);
-	//gFileLog.write("===========LocalBuild==========\r\n");
 }
 
 CPlayerHookerV6::~CPlayerHookerV6()
 {
 	CAudioDataHooker::ms_log.Trace(_T("CPlayerHookerV6::~CPlayerHookerV6().\n"));
-	CAudioDataHooker::ms_log.Trace(_T("===================Local Build End.====================\n"));
-
 // 	stopAudioCapture();
 // 	stopHook();
 // 	gFileLog.close();
@@ -25,19 +21,15 @@ CPlayerHookerV6::~CPlayerHookerV6()
 
 int CPlayerHookerV6::startHook(TCHAR* playerPath)
 {
-	memcpy(m_HookExePath, (void*)playerPath, sizeof(DWORD) * _tcsclen(playerPath) * sizeof(TCHAR));
+	memcpy(m_HookExePath, (void*)playerPath, _tcsclen(playerPath) * sizeof(TCHAR));
 	CAudioDataHooker::ms_log.Trace(_T("startHook: %s\n"), m_HookExePath);
 	if (IsProcessRunning(playerPath))
 	{
-		if (!isHooking())
+		if (!isHooking() || TRUE)
 		{
 			Hook(playerPath);
 			KillProcess(playerPath);
 			StartupProcess(playerPath);
-		}
-		else{
-
-			Hook(playerPath);
 		}
 	}
 	else
@@ -46,14 +38,18 @@ int CPlayerHookerV6::startHook(TCHAR* playerPath)
 		StartupProcess(playerPath);
 	}
 
+	m_HaveHook = TRUE;
+	Resume();
 	return 0;
 }
 
 void CPlayerHookerV6::stopHook()
 {
+	m_HaveHook = FALSE;
 	CAudioDataHooker::ms_log.Trace(_T("stopHook : %s\n"), m_HookExePath);
 	//KillProcess(hookexepath);
 	RemoveHookAudio();
+	CThread::Terminate();
 }
 
 
@@ -103,4 +99,25 @@ HOOKER_PLAYER_API IPlayerHooker* createPlayerHookerInstance() {
 
 HOOKER_PLAYER_API void destoryPlayerHookerInstance(IPlayerHooker* hooker) {
 	delete hooker;
+}
+
+void CPlayerHookerV6::Execute()
+{
+	while (!Terminated){
+
+		if (m_HaveHook){
+			if (!IsProcessRunning(m_HookExePath)){
+				StartupProcess(m_HookExePath);
+				CAudioDataHooker::ms_log.Trace(_T("Monitor Kugou.exe had closed ..reopen it [ %s ,%d]\n"), m_HookExePath, GetTickCount());
+				ShowDebugInfo(_T("Reopen Kugou.exe  stamp: %d\n"),GetTickCount());
+			}
+			Sleep(40);
+			continue;
+		}
+
+		ShowDebugInfo(_T("NoNeedHook Check HookStatus  : terminated: %d stamp:  %d\n"),Terminated, GetTickCount());
+		Sleep(40);
+	}
+
+	ShowDebugInfo(_T("MonitorHook Exit  : terminated: %d stamp:  %d\n"), Terminated, GetTickCount());
 }

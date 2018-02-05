@@ -85,7 +85,7 @@ typedef map<void*, CHookDSoundBuffer*> CHookDSounBufferMap;
 class CAudioDataHooker: public IIntervalThreadNotify
 {
 public:
-	static CAudioDataHooker* Instance(TCHAR *pTStr = _T(""));
+	static CAudioDataHooker* Instance(TCHAR *pTStr = _T(""),bool isMainProcess = false);
 
 	virtual BOOL StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModule);
 	virtual void StopWork();
@@ -103,7 +103,7 @@ protected:
 	void OnThreadTerminate();
 
 private:
-	CAudioDataHooker(TCHAR *pTStr);
+	CAudioDataHooker(TCHAR *pTStr,bool IsMainProcess);
 	~CAudioDataHooker();
 
 	static HRESULT WINAPI HookDirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND *ppDS, LPUNKNOWN pUnkOuter);
@@ -180,6 +180,9 @@ private:
 	HMODULE m_dsoundDll;
 	HMODULE m_winmmDll;
 	TCHAR m_strApp[256];
+	bool m_bIsMainProcess;
+	tstring m_strHooKPcmPath;
+	bool m_isDebugMode;
 
 	int m_ncount;
 };

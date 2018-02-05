@@ -1,4 +1,5 @@
 #include "APIHookLog.h"
+#include "Utils.h"
 
 CAPIHookLog::CAPIHookLog(TCHAR* pLogFileName)
 {
@@ -48,11 +49,16 @@ void CAPIHookLog::UnLock()
 
 #endif
 
+void CAPIHookLog::SetLogPath(TCHAR* pLogPath)
+{
+	m_logFileName = pLogPath;
+}
+
 void CAPIHookLog::Trace(TCHAR* pLog, ...)
 {
 #ifdef _HOOK_LOG_
     Lock();
-	if (m_logFileName.size() > 0)
+	if (m_logFileName.size() > 0 && isDebugMode)
 	{
 		FILE* log;
 		log = _tfopen(m_logFileName.c_str(), _T("a+"));

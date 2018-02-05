@@ -24,6 +24,19 @@ CHookAudioInput::CHookAudioInput():
 	m_pNotifyBuffer = (char*)malloc(dwNOTIFY_SIZE * 2);
 	m_hookRef = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, 0);
 	mpCallback = NULL;
+	
+	TCHAR szBuf[MAX_PATH] = { _T("\0") };
+	ZeroMemory(szBuf, MAX_PATH);
+	GetModuleFileName(NULL, szBuf, MAX_PATH);
+	LPTSTR lpLastSlash = _tcsrchr(szBuf, _T('\\'));
+	TCHAR tchPcmPath[MAX_PATH] = { _T("\0") };
+	ZeroMemory(tchPcmPath,MAX_PATH);
+	memcpy(tchPcmPath, szBuf, sizeof(TCHAR) * (lpLastSlash - szBuf));
+	_tcscat(tchPcmPath,_T("\\V6room\\HookDest.pcm"));
+	CAudioDataHooker::ms_log.Trace(_T("AudioIniput Notify PcmPath: %s\n"),tchPcmPath);
+	m_strAudioPcmPath = tchPcmPath;
+	DeleteFile(CString(tchPcmPath));
+
 	Resume();
 }
 
@@ -101,26 +114,35 @@ void CHookAudioInput::Execute()
 			hookCommand = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_WAIT);
 			if (hookCommand != dwHOOK_AUDIO_DATA_EMPTY )
 			{
-				char szLog1[256] = { '\0' };
-				sprintf_s(szLog, "Audio_Data_Section_Name: : %d %d \n", hookDataLen, GetTickCount());
-				OutputDebugStringA(szLog);
-
 				m_onceHaveHookData = true;
 				m_sharedMem.SetDwordValue(pszHOOK_PROCESS_COMMAND_SECTION_NAME, dwHOOK_AUDIO_DATA_WAIT);
 				//OutputDebugStringA("pszHOOK_PROCESS_COMMAND_SECTION_NAME dwHOOK_AUDIO_DATA_WAIT\r\n");
 				if (m_sharedMem.GetValue(pszHOOK_PROCESS_AUDIO_DATA_SECTION_NAME, m_pNotifyBuffer, &hookDataLen))
 				{
 					//CAudioDataHooker::ms_log.Trace(_T("Audio_DATA_SECTION_NAME: %d\n"),hookDataLen);
+					if (isDebugMode){
 
-#if 1
-					FILE* outfile = fopen("D:\\V6room\\HookDest.pcm", "ab+");
-					if (outfile)
-					{
-						fwrite(m_pNotifyBuffer, 1, hookDataLen, outfile);
-						fclose(outfile);
-						outfile = NULL;
+						//FILE* outfile = fopen("D:\\V6room\\HookDest.pcm", "ab+");
+						FILE* outfile = fopen(CStringA(m_strAudioPcmPath.data()), "ab+");
+						if (outfile)
+						{
+							fwrite(m_pNotifyBuffer, 1, hookDataLen, outfile);
+							fclose(outfile);
+							outfile = NULL;
+						}
 					}
-#endif
+
+					static int nCountAudioNotify = 0;
+					nCountAudioNotify++;
+					static DWORD dwTimeNotifyStamp = GetTickCount();
+					if (5000 < GetTickCount() - dwTimeNotifyStamp){
+						float fAudioNotifyRate = nCountAudioNotify * 1000.0 / (GetTickCount() - dwTimeNotifyStamp);
+
+						CAudioDataHooker::ms_log.Trace(_T("HookAudioInput NotifyCaptureData: %d,%d,%d,%d [ NotifyRate: %.2f]\n"),
+							dwHOOK_AUDIO_DATA_CHANNEL,32,dwHOOK_AUDIO_DATA_SAMPLERATE,hookDataLen,fAudioNotifyRate);
+						nCountAudioNotify = 0;
+						dwTimeNotifyStamp = GetTickCount();
+					}
 
 					m_hookChunk.SetData(m_pNotifyBuffer, hookDataLen, dwHOOK_AUDIO_DATA_SAMPLERATE,
 						dwHOOK_AUDIO_DATA_CHANNEL, 32, true);
@@ -135,11 +157,13 @@ void CHookAudioInput::Execute()
 				static int lasttime = GetTickCount();
 				nCount++;
 
-				if (1000 < GetTickCount() - lasttime){
-					lasttime = GetTickCount();
+				if (5000 < GetTickCount() - lasttime){
 					char szbuf[128] = { '\0' };
 					sprintf_s(szbuf, "DATA_EMPTY Rate: %d\r\n", nCount);
 					//OutputDebugStringA(szbuf);
+					float fAudioEmptyRate = nCount * 1000.0 / (GetTickCount() - lasttime);
+					CAudioDataHooker::ms_log.Trace(_T("HookAudioInput DATA_EMPTY Rate: %.2f"),fAudioEmptyRate);
+					lasttime = GetTickCount();
 					nCount = 0;
 				} 
 			}

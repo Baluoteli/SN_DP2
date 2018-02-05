@@ -32,17 +32,17 @@ static void* GetComInterfaceAddr(void* pClass, int funcIdx)
 
 // CAudioDataHooker
 
-CAudioDataHooker::CAudioDataHooker(TCHAR *pTStr) : m_hook(false), m_sharedMem(pszSHARE_MAP_FILE_NAME, dwSHARE_MEM_SIZE),
+CAudioDataHooker::CAudioDataHooker(TCHAR *pTStr, bool IsMainProcess) : m_hook(false), m_sharedMem(pszSHARE_MAP_FILE_NAME, dwSHARE_MEM_SIZE),
 	m_pIntervalThread(NULL), m_srcSampleRate(0), m_pNotifyBuffer(NULL), m_hookDll(NULL), m_dsoundDll(NULL),
 	m_winmmDll(NULL), m_origWaveOutClose(NULL), m_origWaveOutOpen(NULL), m_origWaveOutPause(NULL), m_origWaveOutReset(NULL)
 	, m_origWaveOutWrite(NULL), m_origWaveOutSetVolume(NULL), m_origWaveOutRestart(NULL)
 	, m_origDsoundBufferPlay(NULL), m_origDsoundBufferRelease(NULL), m_origDsoundBufferSetCurrentPosition(NULL)
 	, m_origDsoundBufferSetVolume(NULL), m_origDsoundBufferStop(NULL), m_origDsoundBufferLock(NULL)
 	, m_origDirectSoundCreate(NULL), m_origDirectSoundCreate8(NULL), m_origDsound8CreateBuffer(NULL)
-	, m_origDsoundCreateBuffer(NULL), m_ncount(0)
+	, m_origDsoundCreateBuffer(NULL), m_ncount(0), m_bIsMainProcess(IsMainProcess), m_strHooKPcmPath(_T("")), m_isDebugMode(false)
 {
 	ZeroMemory(m_strApp, 256 * sizeof(TCHAR));
-	memcpy(m_strApp, (void*)pTStr, sizeof(DWORD) * _tcsclen(pTStr) * sizeof(TCHAR));
+	memcpy(m_strApp, (void*)pTStr, _tcsclen(pTStr) * sizeof(TCHAR));
 	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::CAudioDataHooker() %s\n"),m_strApp);
 	if (m_sharedMem.IsCreated()) 
 	{
@@ -77,6 +77,11 @@ CAudioDataHooker::~CAudioDataHooker()
 {
 	CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::~CAudioDataHooker()\n"));
 	//to make sure thread quit
+	if (m_bIsMainProcess){
+		CAudioDataHooker::ms_log.Trace(_T("===================Local Build End.====================\n"));
+		m_bIsMainProcess = false;
+	}
+	m_isDebugMode = false;
 	StopWork();
 }
 
@@ -107,6 +112,11 @@ void CAudioDataHooker::OnIntervalExecute()
 			CAudioChunk audioChunk;
 			bool process = false;
 
+			static int nCountRead = 0;
+			static int nCountAudioData = 0;
+			static DWORD dwBeginReadStamp = GetTickCount();
+			static DWORD dwBeginAudioStamp = GetTickCount();
+
 			CHookDataPoolVector::iterator itr = ms_hookDataPools.begin();
 			//CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::OnIntervalExecute: %d\n"), ms_hookDataPools.size());
 			for (; itr != ms_hookDataPools.end(); )
@@ -130,8 +140,15 @@ void CAudioDataHooker::OnIntervalExecute()
 						{
 							canSetVaule = true;
 						}
- 						CAudioDataHooker::ms_log.Trace(_T("pAudioDataPool Succ Read: %d, %d, %d, %d, %d\n"), canSetVaule,
- 							pAudioDataPool->GetWaveFormatEx().wFormatTag, channel, bps, sampleRate);
+						nCountRead++;
+						if (GetTickCount() - dwBeginReadStamp > 5000){
+							float fRateRead = nCountRead * 1000.0 / (GetTickCount() - dwBeginReadStamp);
+							nCountRead = 0;
+							dwBeginReadStamp = GetTickCount();
+
+							CAudioDataHooker::ms_log.Trace(_T("pAudioDataPool Succ Read: %d, %d, %d, %d, %d [ readRate : %.2f]\n"), canSetVaule,
+								pAudioDataPool->GetWaveFormatEx().wFormatTag, channel, bps, sampleRate,fRateRead);
+						}
 					}
 					else
 					{
@@ -211,15 +228,26 @@ void CAudioDataHooker::OnIntervalExecute()
 			{
 				if (audioChunk.GetDataSize() <= dwNOTIFY_SIZE * 2)
 				{
-					FILE* outfile = fopen("D:\\V6room\\HookSrc.pcm", "ab+");
-					if (outfile)
-					{
-						fwrite(audioChunk.GetData(), 1, audioChunk.GetDataSize(), outfile);
-						fclose(outfile);
-						outfile = NULL;
+					//FILE* outfile = fopen("D:\\V6room\\HookSrc.pcm", "ab+");
+					if (isDebugMode){
+						FILE* outfile = fopen(CStringA(m_strHooKPcmPath.data()), "ab+");
+						if (outfile)
+						{
+							fwrite(audioChunk.GetData(), 1, audioChunk.GetDataSize(), outfile);
+							fclose(outfile);
+							outfile = NULL;
+						}
 					}
+
 					m_sharedMem.SetValue(pszHOOK_PROCESS_AUDIO_DATA_SECTION_NAME, audioChunk.GetData(), audioChunk.GetDataSize());
-					CAudioDataHooker::ms_log.Trace(_T("pAudioDataPool Share Data: %d\n"), audioChunk.GetDataSize());
+					nCountAudioData++;
+					if (GetTickCount() - dwBeginAudioStamp > 5000){
+						float fRateAudio = nCountAudioData *1000.0 / (GetTickCount() - dwBeginAudioStamp);
+						dwBeginAudioStamp = GetTickCount();
+						nCountAudioData = 0;
+
+						CAudioDataHooker::ms_log.Trace(_T("pAudioDataPool Share Data: %d [ AudioDta Rate: %.2f]\n"), audioChunk.GetDataSize(),fRateAudio);
+					}
 				}
 				else
 				{
@@ -338,6 +366,14 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 		CAudioDataHooker::ms_log.Trace(_T("LoadLibrary dll : %s\n"),hookDllFilePath);
 		m_hook = true;
 
+		TCHAR tchHookPcmPath[MAX_PATH] = { _T("\0") };
+		LPTSTR lpLastSlash = _tcsrchr(hookDllFilePath,_T('\\'));
+		memcpy(tchHookPcmPath, hookDllFilePath, sizeof(TCHAR) * (lpLastSlash - hookDllFilePath));
+		_tcscat(tchHookPcmPath, _T("\\V6room\\HookSrc.pcm"));
+		m_strHooKPcmPath = tchHookPcmPath;
+		DeleteFile(tchHookPcmPath);
+		CAudioDataHooker::ms_log.Trace(_T("StartWork HookSrc AudioData Path : %s\n"),m_strHooKPcmPath);
+
 		return TRUE;
 	}
 	std::wstring hookPath(pHookProcessPath);
@@ -418,6 +454,7 @@ void CAudioDataHooker::StopWork()
 				m_hookDll = NULL;
 			}
 
+
 			if (installCount == 0)
 			UninstallHook();
 		}
@@ -430,12 +467,14 @@ void CAudioDataHooker::SetHookCertainProcess(const TCHAR* pHookProcessPath)
 	{
 		m_sharedMem.SetValue(pszHOOK_PROCESS_PATH_SECTION_NAME, (void*)pHookProcessPath, 
 			(DWORD)_tcsclen(pHookProcessPath) * sizeof(TCHAR));
+		
+
 	}
 }
 
-CAudioDataHooker* CAudioDataHooker::Instance(TCHAR *pTStr /*= _T("")*/)
+CAudioDataHooker* CAudioDataHooker::Instance(TCHAR *pTStr /*= _T("")*/, bool isMainProcess /*= false*/)
 {
-	static CAudioDataHooker s_audioDataHooker(pTStr);
+	static CAudioDataHooker s_audioDataHooker(pTStr,isMainProcess);
 	return &s_audioDataHooker;
 }
 
