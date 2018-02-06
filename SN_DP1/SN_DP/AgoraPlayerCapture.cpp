@@ -5,7 +5,7 @@
 #include "PlayerHooker.h"
 
 #include "AgoraManager.h"
-#include <timeapi.h>
+//#include <timeapi.h>
 extern AgoraManager*	pAgoraManager;
 
 CAudioCaptureCallback::CAudioCaptureCallback()
@@ -34,7 +34,7 @@ void CAudioCaptureCallback::onCaptureStop()
 }
 
 //get audio data
-DWORD timelast = timeGetTime();
+DWORD timelast = GetTickCount();
 int ninclen = 0;
 void CAudioCaptureCallback::onCapturedData(void* data, UINT dataLen, WAVEFORMATEX* format)
 {
@@ -52,7 +52,7 @@ void CAudioCaptureCallback::onCapturedData(void* data, UINT dataLen, WAVEFORMATE
 	//OutputDebugStringA(loginfo);
 
 	ninclen++;
-	DWORD timenow = timeGetTime();
+	DWORD timenow = GetTickCount();
 	if (timenow - timelast >= 1000)
 	{
 		timelast = timenow;

@@ -2,7 +2,7 @@
 #include "ExtendAudioFrameObserver.h"
 
 #include "AgoraManager.h"
-#include <timeapi.h>
+//#include <timeapi.h>
 
 extern AgoraManager*	pAgoraManager;
 
@@ -62,7 +62,7 @@ BOOL mixAudioData(char* psrc, char* pdst, int datalen)
 	return TRUE;
 }
 
-DWORD timeold1 = timeGetTime();
+DWORD timeold1 = GetTickCount();
 int timeinc1 = 0;
 FILE * outfile = NULL;
 bool CExtendAudioFrameObserver::onRecordAudioFrame(AudioFrame& audioFrame)

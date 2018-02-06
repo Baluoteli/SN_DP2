@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "ExtendVideoFrameObserver.h"
-#include <timeapi.h>
+//#include <timeapi.h>
 #include "FileIO.h"
 
 CExtendVideoFrameObserver::CExtendVideoFrameObserver()
@@ -70,7 +70,7 @@ void DoMirror(unsigned char* yuv_temp, int nw, int nh, int w,
 
 }
 
-DWORD timeold = timeGetTime();
+DWORD timeold = GetTickCount();
 int timeinc = 0;
 bool CExtendVideoFrameObserver::onCaptureVideoFrame(VideoFrame& videoFrame)
 {
@@ -81,7 +81,7 @@ bool CExtendVideoFrameObserver::onCaptureVideoFrame(VideoFrame& videoFrame)
 // 	fileYuv.write((char*)videoFrame.vBuffer, videoFrame.vStride * videoFrame.height / 2);
 // 	fileYuv.close();
 	timeinc++;
-	DWORD timenow = timeGetTime();
+	DWORD timenow = GetTickCount();
 	if (timenow - timeold >= 5000)
 	{
 		timeold = timenow;

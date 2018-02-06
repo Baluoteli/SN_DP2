@@ -344,7 +344,7 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 	if (_tcsicmp(buf, pHookProcessPath) == 0 && !m_hook)
 	{
 		DWORD installCount = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0);
-		if (installCount > 0){
+		if (installCount > 0 && FALSE){
 			return FALSE;
 		}
 		CAudioDataHooker::ms_log.Trace(_T("CAudioDataHooker::StartWork: [%s, %s]\n"), pHookProcessPath, buf);

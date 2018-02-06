@@ -25,11 +25,14 @@ int CPlayerHookerV6::startHook(TCHAR* playerPath)
 	CAudioDataHooker::ms_log.Trace(_T("startHook: %s\n"), m_HookExePath);
 	if (IsProcessRunning(playerPath))
 	{
-		if (!isHooking() || TRUE)
+		if (!isHooking())
 		{
 			Hook(playerPath);
 			KillProcess(playerPath);
 			StartupProcess(playerPath);
+		}
+		else{
+
 		}
 	}
 	else

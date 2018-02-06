@@ -412,13 +412,13 @@ BOOL AgoraManager::initParam()
 	this->ChatRoomInfo.nFps = 15;
 	this->ChatRoomInfo.nHeight = 360;
 	this->ChatRoomInfo.nMicChannel = 2;
-	this->ChatRoomInfo.nRID = 1111;
+	this->ChatRoomInfo.nRID = 1112;
 	this->ChatRoomInfo.nSampleRate = 44100;
-	this->ChatRoomInfo.nUID = 1112;
+	this->ChatRoomInfo.nUID = 1111;
 	this->ChatRoomInfo.nWidth = 480;
 	this->ChatRoomInfo.sCamerName = "Integrated Webcam";
 	this->ChatRoomInfo.sChannelKey = "";
-	this->ChatRoomInfo.sChannelName = "123test134";
+	this->ChatRoomInfo.sChannelName = "123test_V62";
 	this->ChatRoomInfo.sMicName = "";
 	this->ChatRoomInfo.sPlayerPath = "";
 	this->ChatRoomInfo.sPublishUrl = "";
@@ -426,6 +426,7 @@ BOOL AgoraManager::initParam()
 	this->RtmpPushInfo.ip = "aliliveup.6rooms.com";
 	this->RtmpPushInfo.port = "1935";
 	this->RtmpPushInfo.appname = "liverecord";
+
 	this->RtmpPushInfo.streamname = "v587";
 	this->RtmpPushInfo.bitrate = 1000;
 	this->RtmpPushInfo.brtmppush = TRUE;
