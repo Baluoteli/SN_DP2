@@ -32,6 +32,7 @@ int CPlayerHookerV6::startHook(TCHAR* playerPath)
 			StartupProcess(playerPath);
 		}
 		else{
+			//MainProcess crash  .TO DO Below
 
 		}
 	}
@@ -42,7 +43,7 @@ int CPlayerHookerV6::startHook(TCHAR* playerPath)
 	}
 
 	m_HaveHook = TRUE;
-	Resume();
+	//Resume();
 	return 0;
 }
 
@@ -86,7 +87,6 @@ void CPlayerHookerV6::stopAudioCapture()
 		delete mpAudioInput;
 		mpAudioInput = NULL;
 	}
-
 }
 
 void CPlayerHookerV6::Hook(TCHAR* playerPath)

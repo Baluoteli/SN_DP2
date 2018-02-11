@@ -95,11 +95,35 @@ void CHookDSoundBuffer::CapturePlayData(bool forceRead)
 			if (currentPlayPos > m_currentPlayPos)
 			{
 				m_pAudioDataPool->Write(m_pBufferAddr + m_currentPlayPos, currentPlayPos - m_currentPlayPos);
+				if (isDebugMode){
+					FILE* outfile = fopen(("D:\\V6room\\HookSoundSrc.pcm"), "ab+");
+					if (outfile){
+						fwrite(m_pBufferAddr + m_currentPlayPos, 1, currentPlayPos - m_currentPlayPos, outfile);
+						fclose(outfile);
+						outfile = NULL;
+					}
+				}
 			}
 			else if (currentPlayPos != m_currentPlayPos)
 			{
 				m_pAudioDataPool->Write(m_pBufferAddr + m_currentPlayPos, m_totalBufferSize - m_currentPlayPos);
+				if (isDebugMode){
+					FILE* outfile = fopen(("D:\\V6room\\HookSoundSrc.pcm"), "ab+");
+					if (outfile){
+						fwrite(m_pBufferAddr + m_currentPlayPos, 1, m_totalBufferSize - m_currentPlayPos, outfile);
+						fclose(outfile);
+						outfile = NULL;
+					}
+				}
 				m_pAudioDataPool->Write(m_pBufferAddr, currentPlayPos);
+				if (isDebugMode){
+					FILE* outfile = fopen(("D:\\V6room\\HookSoundSrc.pcm"), "ab+");
+					if (outfile){
+						fwrite(m_pBufferAddr, 1, currentPlayPos, outfile);
+						fclose(outfile);
+						outfile = NULL;
+					}
+				}
 			}
  	 		//CAudioDataHooker::ms_log.Trace(_T("IDirectSoundBuffer->Lock: %d, %d, %d\n"), updateSize, m_currentPlayPos, currentPlayPos);
 			m_currentPlayPos = currentPlayPos;

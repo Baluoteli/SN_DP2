@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "AgoraVideoPlay.h"
 #include "AgoraManager.h"
-
+#pragma comment(lib, "Gdi32.lib")
 #include <Mmsystem.h>
 #pragma comment(lib, "winmm.lib")
 

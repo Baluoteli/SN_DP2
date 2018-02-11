@@ -50,8 +50,8 @@ BOOL getCurLogDir(LPTSTR lpCurAppPath, LPTSTR lpCurDllPath)
 		//delete logfile before
 		DeleteFile(csHookLogPath);
 		CAudioDataHooker::ms_log.Trace(_T("===================Local Build Begin.====================\n"));
-		CAudioDataHooker::ms_log.Trace(_T(" [first] setHookLog : [%s, %s]\n"), csHookLogPath, lpCurAppPath);
-		CAudioDataHooker::ms_log.Trace(_T("DebugMode: %d\n"), isDebugMode);
+		CAudioDataHooker::ms_log.Trace(_T(" [First Enter ] setHookLog : [%s, %s]\n"), csHookLogPath, lpCurAppPath);
+		CAudioDataHooker::ms_log.Trace(_T("!!!sMakeSure DebugMode Is : %d\n"), isDebugMode);
 
 		return TRUE;
 	}

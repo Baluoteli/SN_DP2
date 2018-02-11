@@ -53,6 +53,11 @@ CHookAudioInput::~CHookAudioInput()
 	{
 		m_pResampler->Destroy();
 	}
+
+	if (mpCallback){//Notify Exit
+		mpCallback->onCaptureStop();
+		mpCallback = nullptr;
+	}
 }
 
 const DWORD dwWAIT_NOTIFY_SIZE = dwNOTIFY_SIZE * 4;
@@ -262,7 +267,9 @@ void CHookAudioInput::Stop()
 		return;
 	}
 	m_stop = true;
-	bool haveIntallHook = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0) > 0;
+	DWORD dwHookCount = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0);
+	bool haveIntallHook = dwHookCount > 0;
+	CAudioDataHooker::ms_log.Trace(_T("HookAudioInput Stop Capture INSTALL_COUNT_SECTION_NAME: %d\n"), dwHookCount);
 	if (haveIntallHook)
 	{
 		CThread::Terminate();

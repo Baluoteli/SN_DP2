@@ -412,14 +412,14 @@ BOOL AgoraManager::initParam()
 	this->ChatRoomInfo.nFps = 15;
 	this->ChatRoomInfo.nHeight = 360;
 	this->ChatRoomInfo.nMicChannel = 2;
-	this->ChatRoomInfo.nRID = 1112;
+	this->ChatRoomInfo.nRID = 1111;
 	this->ChatRoomInfo.nSampleRate = 44100;
-	this->ChatRoomInfo.nUID = 1111;
+	this->ChatRoomInfo.nUID = 1112;
 	this->ChatRoomInfo.nWidth = 480;
 	this->ChatRoomInfo.sCamerName = "Integrated Webcam";
 	this->ChatRoomInfo.sChannelKey = "";
 	this->ChatRoomInfo.sChannelName = "123test_V62";
-	this->ChatRoomInfo.sMicName = "";
+	this->ChatRoomInfo.sMicName = "piq KX-2A";
 	this->ChatRoomInfo.sPlayerPath = "";
 	this->ChatRoomInfo.sPublishUrl = "";
 

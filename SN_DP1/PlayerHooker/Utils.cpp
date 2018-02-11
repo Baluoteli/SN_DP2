@@ -1,5 +1,6 @@
 #include "Utils.h"
 #include <psapi.h>
+#pragma comment(lib, "psapi.lib")
 #include <TlHelp32.h>
 
 #pragma warning (disable : 4311)

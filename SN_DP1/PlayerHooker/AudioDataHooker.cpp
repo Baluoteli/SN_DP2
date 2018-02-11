@@ -87,6 +87,7 @@ CAudioDataHooker::~CAudioDataHooker()
 
 void CAudioDataHooker::OnThreadTerminate()
 {
+	CAudioDataHooker::ms_log.Trace(_T("OnThreadTerminate : %s \n "),m_strApp);
 	StopWork();
 }
 
@@ -372,7 +373,7 @@ BOOL CAudioDataHooker::StartWork(const TCHAR* pHookProcessPath, HINSTANCE hModul
 		_tcscat(tchHookPcmPath, _T("\\V6room\\HookSrc.pcm"));
 		m_strHooKPcmPath = tchHookPcmPath;
 		DeleteFile(tchHookPcmPath);
-		CAudioDataHooker::ms_log.Trace(_T("StartWork HookSrc AudioData Path : %s\n"),m_strHooKPcmPath);
+		CAudioDataHooker::ms_log.Trace(_T("StartWork HookSrc AudioData Path : %s\n"),CString(m_strHooKPcmPath.data()));
 
 		return TRUE;
 	}
@@ -389,14 +390,14 @@ void CAudioDataHooker::StopWork()
 {
 	if (m_hook)
 	{
-		CAudioDataHooker::ms_log.Trace(_T("StopWork %s\n"),m_strApp);
+		CAudioDataHooker::ms_log.Trace(_T("StopWork %s\n"), m_strApp);
 		DWORD installCount = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, 0);
 		if (installCount > 0)
 		{
 			installCount--;
 		}
 		m_sharedMem.SetDwordValue(pszHOOK_PROCESS_INSTALL_COUNT_SECTION_NAME, installCount);
-		CAudioDataHooker::ms_log.Trace(_T("INSTALL_COUNT_SECTION_NAME: [%d, %s]\n"),installCount,m_strApp);
+		CAudioDataHooker::ms_log.Trace(_T("INSTALL_COUNT_SECTION_NAME: [%d, %s]\n"), installCount, m_strApp);
 
 		//全部卸载完后，取消动态链接库映射
 		if (installCount >= 0)
@@ -449,14 +450,21 @@ void CAudioDataHooker::StopWork()
 
 			if (m_hookDll != NULL)
 			{
-				CAudioDataHooker::ms_log.Trace(_T("FreeLibrary: %s\n"),m_strApp);
+				CAudioDataHooker::ms_log.Trace(_T("FreeLibrary: [%s %d]\n"), m_strApp, installCount);
 				FreeLibrary(m_hookDll);
 				m_hookDll = NULL;
 			}
 
+			if (installCount == 0){
+				int hookCountStart = m_sharedMem.GetDwordValue(pszHOOK_PROCESS_START_SECTION_NAME, 0);
+				CAudioDataHooker::ms_log.Trace(_T("START_SECTION_NAME : %d\n"), hookCountStart);
+				if (!(hookCountStart % 2)){
 
-			if (installCount == 0)
-			UninstallHook();
+					UninstallHook();
+				}
+			}
+
+
 		}
 	}
 }
