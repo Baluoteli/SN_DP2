@@ -51,7 +51,7 @@ BOOL getCurLogDir(LPTSTR lpCurAppPath, LPTSTR lpCurDllPath)
 		DeleteFile(csHookLogPath);
 		CAudioDataHooker::ms_log.Trace(_T("===================Local Build Begin.====================\n"));
 		CAudioDataHooker::ms_log.Trace(_T(" [First Enter ] setHookLog : [%s, %s]\n"), csHookLogPath, lpCurAppPath);
-		CAudioDataHooker::ms_log.Trace(_T("!!!sMakeSure DebugMode Is : %d\n"), isDebugMode);
+		CAudioDataHooker::ms_log.Trace(_T("!!!MakeSure DebugMode Is : %d, SaveDump: %d\n"), isDebugMode,isSaveDumpPcm);
 
 		return TRUE;
 	}
@@ -70,6 +70,7 @@ BOOL APIENTRY DllMain( HINSTANCE hModule,
 	case DLL_PROCESS_ATTACH:
 	{
 			isDebugMode = IsDebugMode(hModule);
+			isSaveDumpPcm = IsSaveDumpPcm(hModule);
 			TCHAR buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			hDll = hModule;

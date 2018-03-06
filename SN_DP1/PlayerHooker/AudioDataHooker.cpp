@@ -39,7 +39,7 @@ CAudioDataHooker::CAudioDataHooker(TCHAR *pTStr, bool IsMainProcess) : m_hook(fa
 	, m_origDsoundBufferPlay(NULL), m_origDsoundBufferRelease(NULL), m_origDsoundBufferSetCurrentPosition(NULL)
 	, m_origDsoundBufferSetVolume(NULL), m_origDsoundBufferStop(NULL), m_origDsoundBufferLock(NULL)
 	, m_origDirectSoundCreate(NULL), m_origDirectSoundCreate8(NULL), m_origDsound8CreateBuffer(NULL)
-	, m_origDsoundCreateBuffer(NULL), m_ncount(0), m_bIsMainProcess(IsMainProcess), m_strHooKPcmPath(_T("")), m_isDebugMode(false)
+	, m_origDsoundCreateBuffer(NULL), m_ncount(0), m_bIsMainProcess(IsMainProcess), m_strHooKPcmPath(_T(""))
 {
 	ZeroMemory(m_strApp, 256 * sizeof(TCHAR));
 	memcpy(m_strApp, (void*)pTStr, _tcsclen(pTStr) * sizeof(TCHAR));
@@ -81,7 +81,6 @@ CAudioDataHooker::~CAudioDataHooker()
 		CAudioDataHooker::ms_log.Trace(_T("===================Local Build End.====================\n"));
 		m_bIsMainProcess = false;
 	}
-	m_isDebugMode = false;
 	StopWork();
 }
 
@@ -230,7 +229,7 @@ void CAudioDataHooker::OnIntervalExecute()
 				if (audioChunk.GetDataSize() <= dwNOTIFY_SIZE * 2)
 				{
 					//FILE* outfile = fopen("D:\\V6room\\HookSrc.pcm", "ab+");
-					if (isDebugMode){
+					if (isSaveDumpPcm){
 						FILE* outfile = fopen(CStringA(m_strHooKPcmPath.data()), "ab+");
 						if (outfile)
 						{

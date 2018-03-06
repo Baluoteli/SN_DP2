@@ -182,7 +182,6 @@ private:
 	TCHAR m_strApp[256];
 	bool m_bIsMainProcess;
 	tstring m_strHooKPcmPath;
-	bool m_isDebugMode;
 
 	int m_ncount;
 };

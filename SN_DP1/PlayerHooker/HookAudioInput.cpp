@@ -125,7 +125,7 @@ void CHookAudioInput::Execute()
 				if (m_sharedMem.GetValue(pszHOOK_PROCESS_AUDIO_DATA_SECTION_NAME, m_pNotifyBuffer, &hookDataLen))
 				{
 					//CAudioDataHooker::ms_log.Trace(_T("Audio_DATA_SECTION_NAME: %d\n"),hookDataLen);
-					if (isDebugMode){
+					if (isSaveDumpPcm){
 
 						//FILE* outfile = fopen("D:\\V6room\\HookDest.pcm", "ab+");
 						FILE* outfile = fopen(CStringA(m_strAudioPcmPath.data()), "ab+");

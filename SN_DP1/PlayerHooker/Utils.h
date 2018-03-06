@@ -11,6 +11,7 @@
 #include <atlstr.h>
 
 extern bool isDebugMode;
+extern bool isSaveDumpPcm;
 
 #ifndef __MAX
 #   define __MAX(a, b)   (((a) > (b)) ? (a) : (b))
@@ -94,6 +95,7 @@ int CS2int(const CString &csStr);
 bool findPlayerPath(char* exename, int namelen, TCHAR* playerPath);
 
 bool IsDebugMode(HINSTANCE HModule);
+bool IsSaveDumpPcm(HINSTANCE HModule);
 
 extern CFileIO gFileLog;
 #endif
