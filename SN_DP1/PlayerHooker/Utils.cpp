@@ -213,23 +213,29 @@ bool IsDebugMode(HINSTANCE HModule)
 	SIZE_T nNameLen = MAX_PATH - (lpLastSlash - szFilePath + 1);
 	_tcscpy_s(lpLastSlash + 1, nNameLen, _T("DebugMode.ini"));
 
-	if (::GetFileAttributes(szFilePath) == INVALID_FILE_ATTRIBUTES){
+	if (::GetFileAttributes(szFilePath) == INVALID_FILE_ATTRIBUTES) {
 		CreateFile(szFilePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
 			CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
-		::WritePrivateProfileString(_T("DebugMode"),_T("DebugMode"),_T("0"),szFilePath);
+		::WritePrivateProfileString(_T("DebugMode"), _T("DebugMode"), _T("1"), szFilePath);
+		::WritePrivateProfileString(_T("DebugMode"), _T("SaveDumpPcm"), _T("0"), szFilePath);
 
 		return FALSE;
 	}
 
 	CString strResolution;
-
+	//Default 1
 	::GetPrivateProfileString(_T("DebugMode"), _T("DebugMode"), NULL, DebugMode.GetBuffer(MAX_PATH), MAX_PATH, szFilePath);
+	if (_T("") == DebugMode){
+		DebugMode = _T("1");
+		::WritePrivateProfileString(_T("DebugMode"), _T("DebugMode"), DebugMode, szFilePath);
+	}
 
 	DebugMode.ReleaseBuffer();
 
 	return CS2int(DebugMode);
 }
+
 
 bool IsSaveDumpPcm(HINSTANCE HModule)
 {
@@ -245,20 +251,26 @@ bool IsSaveDumpPcm(HINSTANCE HModule)
 	SIZE_T nNameLen = MAX_PATH - (lpLastSlash - szFilePath + 1);
 	_tcscpy_s(lpLastSlash + 1, nNameLen, _T("DebugMode.ini"));
 
-	if (::GetFileAttributes(szFilePath) == INVALID_FILE_ATTRIBUTES){
+	if (::GetFileAttributes(szFilePath) == INVALID_FILE_ATTRIBUTES) {
 		CreateFile(szFilePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
 			CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
+		::WritePrivateProfileString(_T("DebugMode"), _T("DebugMode"), _T("1"), szFilePath);
 		::WritePrivateProfileString(_T("DebugMode"), _T("SaveDumpPcm"), _T("0"), szFilePath);
 
 		return FALSE;
 	}
 
 	CString strResolution;
-
+	//Default 0
 	::GetPrivateProfileString(_T("DebugMode"), _T("SaveDumpPcm"), NULL, DebugMode.GetBuffer(MAX_PATH), MAX_PATH, szFilePath);
+	if (_T("") == DebugMode){
+		DebugMode = _T("0");
+		::WritePrivateProfileString(_T("DebugMode"), _T("SaveDumpPcm"), DebugMode, szFilePath);
+	}
 
 	DebugMode.ReleaseBuffer();
 
 	return CS2int(DebugMode);
 }
+
